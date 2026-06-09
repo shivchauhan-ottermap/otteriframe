@@ -230,8 +230,7 @@ export function useQualifierTask() {
     } catch (err) {
       console.error(err);
       alert(
-        "Could not start the task. Please check your connection and try again.\n\n" +
-          (err.message || "Database error")
+        "Duplicates found! Please contact support."
       );
     } finally {
       setIsStarting(false);
@@ -305,7 +304,7 @@ export function useQualifierTask() {
     } catch (err) {
       console.error(err);
       alert(
-        "Submission failed. Please try again.\n\n" + (err.message || "Database error")
+        "Submission failed!! Please contact support."
       );
     } finally {
       setIsSubmitting(false);
