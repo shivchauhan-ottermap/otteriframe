@@ -1,9 +1,13 @@
 -- ============================================================
 -- RUN THIS ENTIRE FILE in Supabase → SQL Editor (one time)
--- Then test with a fresh incognito window
 -- ============================================================
+--
+-- After running:
+-- 1. Authentication → Users → Add admin user (email + password)
+-- 2. insert into public.admins (email) values ('admin@ottermap.com');
+-- 3. Test qualifier app in a fresh incognito window
 
--- 1. Table + columns
+-- ── Submissions table ────────────────────────────────────────
 create table if not exists public.qualifier_submissions (
   id uuid primary key default gen_random_uuid(),
   submission_id text unique not null,
@@ -37,7 +41,35 @@ alter table public.qualifier_submissions add column if not exists submitted_at t
 alter table public.qualifier_submissions add column if not exists time_used text;
 alter table public.qualifier_submissions add column if not exists status text default 'in_progress';
 
--- 2. RLS
+-- ── Admins table (passwords live in Supabase Auth, not here) ─
+create table if not exists public.admins (
+  id uuid primary key default gen_random_uuid(),
+  email text unique not null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.admins enable row level security;
+
+drop policy if exists "admins read own row" on public.admins;
+create policy "admins read own row"
+  on public.admins for select to authenticated
+  using (lower(email) = lower(auth.jwt() ->> 'email'));
+
+create or replace function public.is_admin(check_email text)
+returns boolean
+language sql
+security definer
+stable
+as $$
+  select exists (
+    select 1 from public.admins
+    where lower(email) = lower(check_email)
+  );
+$$;
+
+grant execute on function public.is_admin(text) to authenticated;
+
+-- ── RLS: candidates write, admins read ─────────────────────
 alter table public.qualifier_submissions enable row level security;
 
 drop policy if exists "anon can insert qualifier submissions" on public.qualifier_submissions;
@@ -62,7 +94,7 @@ create policy "admins can read submissions"
     )
   );
 
--- 3. Save function (bypasses RLS — reliable upsert for answers + submit)
+-- ── Save function (upsert — bypasses RLS for reliable writes) ─
 create or replace function public.save_qualifier_answers(payload jsonb)
 returns void
 language plpgsql
@@ -75,22 +107,9 @@ begin
   end if;
 
   insert into public.qualifier_submissions (
-    submission_id,
-    name,
-    email,
-    phone,
-    started_at,
-    part_a,
-    part_b,
-    part_c1,
-    part_c2,
-    part_c3,
-    part_d1,
-    part_d2,
-    part_e,
-    status,
-    submitted_at,
-    time_used
+    submission_id, name, email, phone, started_at,
+    part_a, part_b, part_c1, part_c2, part_c3, part_d1, part_d2, part_e,
+    status, submitted_at, time_used
   )
   values (
     payload->>'submission_id',
@@ -132,5 +151,4 @@ grant execute on function public.save_qualifier_answers(jsonb) to anon;
 grant execute on function public.save_qualifier_answers(jsonb) to authenticated;
 grant execute on function public.save_qualifier_answers(jsonb) to public;
 
--- Refresh API schema cache
 notify pgrst, 'reload schema';

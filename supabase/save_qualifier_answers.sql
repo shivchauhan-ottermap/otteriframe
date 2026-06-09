@@ -1,2 +1,0 @@
--- DEPRECATED: The app no longer uses this RPC function.
--- Run supabase/setup_complete.sql instead.
