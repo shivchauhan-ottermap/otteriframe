@@ -164,7 +164,7 @@ export function useQualifierTask() {
     if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current);
     saveDebounceRef.current = setTimeout(() => {
       saveAnswers(subId, nextAnswers).catch((err) => {
-        console.error("Auto-save failed:", err.message || err);
+        // console.error("Auto-save failed:");
       });
     }, 800);
   }, []);
@@ -228,7 +228,7 @@ export function useQualifierTask() {
       setScreen("task");
       startTimer();
     } catch (err) {
-      console.error(err);
+      // console.error(err);
       alert(
         "Duplicates found! Please contact support."
       );
@@ -302,7 +302,7 @@ export function useQualifierTask() {
         window.location.href = `mailto:hiring@ottermap.com?subject=${emailSubject}&body=${encodeURIComponent(emailBody)}`;
       }, 1200);
     } catch (err) {
-      console.error(err);
+      // console.error(err);
       alert(
         "Submission failed!! Please contact support."
       );
