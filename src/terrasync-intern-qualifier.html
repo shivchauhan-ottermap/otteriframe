@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ottermap × TerraSync — AI Builder Qualifier Task</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #181818;
+    --border: #2a2a2a;
+    --border-bright: #3d3d3d;
+    --text: #e8e8e8;
+    --muted: #666666;
+    --accent: #00e5a0;
+    --accent-dim: rgba(0,229,160,0.08);
+    --accent-mid: rgba(0,229,160,0.15);
+    --warn: #f5a623;
+    --danger: #ff4d4d;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid bg */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── LANDING SCREEN ── */
+  #landing {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .logo-mark {
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .logo-mark::before, .logo-mark::after {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 1px;
+    background: var(--accent);
+    opacity: 0.5;
+  }
+
+  .landing-title {
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .landing-sub {
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    margin-bottom: 3rem;
+    max-width: 480px;
+  }
+
+  .rules-box {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 2rem;
+    max-width: 560px;
+    width: 100%;
+    text-align: left;
+    margin-bottom: 2.5rem;
+  }
+
+  .rules-box h3 {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.2rem;
+  }
+
+  .rule-item {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    align-items: flex-start;
+  }
+
+  .rule-num {
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 600;
+    min-width: 20px;
+    padding-top: 1px;
+  }
+
+  .rule-text {
+    color: #b0b0b0;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .rule-text strong { color: var(--text); font-weight: 600; }
+
+  #name-input-wrap {
+    max-width: 560px;
+    width: 100%;
+    margin-bottom: 1.5rem;
+  }
+
+  #name-input-wrap label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+
+  #candidate-name {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border-bright);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    padding: 0.85rem 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  #candidate-name:focus { border-color: var(--accent); }
+  #candidate-name::placeholder { color: var(--muted); }
+
+  .start-btn {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 1rem 3rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .start-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.15);
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .start-btn:hover::after { opacity: 1; }
+  .start-btn:active { transform: scale(0.98); }
+  .start-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .warning-text {
+    font-size: 11px;
+    color: var(--warn);
+    margin-top: 1rem;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── MAIN TASK LAYOUT ── */
+  #task-app {
+    display: none;
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+  }
+
+  /* Sticky header */
+  #header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(10,10,10,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .brand {
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+  }
+
+  .candidate-tag {
+    font-size: 11px;
+    color: var(--muted);
+    padding: 3px 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  /* Timer */
+  #timer-wrap {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  #timer-display {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    transition: color 0.3s;
+    min-width: 90px;
+    text-align: right;
+  }
+  #timer-display.warn { color: var(--warn); }
+  #timer-display.danger { color: var(--danger); animation: pulse 1s infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .timer-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .progress-bar-wrap {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--border);
+    z-index: 49;
+  }
+  #progress-bar {
+    height: 100%;
+    background: var(--accent);
+    transition: width 1s linear, background 0.5s;
+    width: 100%;
+  }
+
+  /* ── MAIN CONTENT ── */
+  #main-content {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 3rem 2rem 6rem;
+  }
+
+  /* Section reveal states */
+  .task-section {
+    margin-bottom: 2.5rem;
+    opacity: 0.35;
+    transition: opacity 0.4s;
+    position: relative;
+  }
+  .task-section.active { opacity: 1; }
+  .task-section.locked .section-body { display: none; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-tag {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid rgba(0,229,160,0.2);
+    padding: 3px 10px;
+  }
+
+  .section-title {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text);
+  }
+
+  .section-meta {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .dot-active { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); display: inline-block; }
+
+  .lock-overlay {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.2rem 1.5rem;
+    border: 1px dashed var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+  }
+  .lock-icon { font-size: 16px; opacity: 0.5; }
+
+  /* Context box */
+  .context-box {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .context-box h4 {
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .context-box p {
+    color: #c0c0c0;
+    font-size: 13px;
+    line-height: 1.75;
+    margin-bottom: 0.75rem;
+  }
+
+  /* Ticket card */
+  .ticket-card {
+    border: 1px solid var(--accent);
+    background: var(--accent-dim);
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+
+  .ticket-card::before {
+    content: 'LINEAR TICKET';
+    position: absolute;
+    top: -1px;
+    right: 1.5rem;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    background: var(--accent);
+    color: #000;
+    font-weight: 700;
+    padding: 2px 10px;
+    font-family: var(--sans);
+  }
+
+  .ticket-id {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    letter-spacing: 0.05em;
+  }
+
+  .ticket-title {
+    font-family: var(--sans);
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 1rem;
+    line-height: 1.3;
+  }
+
+  .ticket-badges {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 10px;
+    font-family: var(--sans);
+  }
+  .badge-high { background: rgba(245,166,35,0.15); color: var(--warn); border: 1px solid rgba(245,166,35,0.3); }
+  .badge-py { background: rgba(0,229,160,0.1); color: var(--accent); border: 1px solid rgba(0,229,160,0.2); }
+  .badge-bug { background: rgba(255,77,77,0.1); color: var(--danger); border: 1px solid rgba(255,77,77,0.2); }
+
+  .ticket-section { margin-bottom: 1rem; }
+  .ticket-section-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+  .ticket-body { font-size: 13px; color: #c0c0c0; line-height: 1.7; }
+
+  .criteria-list { list-style: none; }
+  .criteria-list li {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+    font-size: 13px;
+    color: #c0c0c0;
+  }
+  .criteria-list li::before {
+    content: '▸';
+    color: var(--accent);
+    font-size: 11px;
+    min-width: 14px;
+    padding-top: 2px;
+  }
+
+  /* Task instruction */
+  .task-instruction {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+  }
+
+  .task-note {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 1.25rem;
+    padding-left: 1rem;
+    border-left: 2px solid var(--border-bright);
+    line-height: 1.6;
+  }
+
+  /* Textarea */
+  .answer-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border-bright);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+    padding: 1rem 1.25rem;
+    resize: vertical;
+    min-height: 140px;
+    outline: none;
+    transition: border-color 0.2s;
+    display: block;
+  }
+  textarea:focus { border-color: var(--accent); }
+  textarea::placeholder { color: var(--muted); opacity: 0.6; }
+
+  .char-count {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+    margin-top: 0.4rem;
+  }
+
+  /* Dividers */
+  .task-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 1.75rem 0;
+  }
+
+  /* Sub-question block */
+  .sub-q {
+    margin-bottom: 1.75rem;
+  }
+
+  .sub-q-label {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.6rem;
+  }
+
+  .sub-q-prompt {
+    font-size: 13px;
+    color: #c0c0c0;
+    margin-bottom: 0.75rem;
+    line-height: 1.7;
+  }
+
+  /* Submit section */
+  #submit-section {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(10,10,10,0.97);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border);
+    padding: 1.25rem 2rem;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 40;
+    gap: 1.5rem;
+  }
+
+  .submit-info {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .submit-info strong { color: var(--text); }
+
+  .submit-btn {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.85rem 2.5rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .submit-btn:hover { opacity: 0.9; }
+  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Expired overlay */
+  #expired-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(10,10,10,0.97);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .expired-icon {
+    font-size: 48px;
+    margin-bottom: 1.5rem;
+  }
+
+  .expired-title {
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: 2.5rem;
+    color: var(--danger);
+    margin-bottom: 0.75rem;
+  }
+
+  .expired-sub {
+    color: var(--muted);
+    font-size: 14px;
+    max-width: 400px;
+    line-height: 1.7;
+  }
+
+  /* Submitted screen */
+  #submitted-screen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: var(--bg);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .submitted-check {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--accent-mid);
+    border: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin-bottom: 2rem;
+    animation: scaleIn 0.4s ease;
+  }
+
+  @keyframes scaleIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .submitted-title {
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: 2rem;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+  }
+
+  .submitted-sub {
+    color: var(--muted);
+    font-size: 14px;
+    max-width: 440px;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+  }
+
+  .submitted-id {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    border: 1px solid rgba(0,229,160,0.2);
+    background: var(--accent-dim);
+    padding: 0.5rem 1.25rem;
+    letter-spacing: 0.1em;
+  }
+
+  /* Intro segment */
+  .intro-block {
+    margin-bottom: 2.5rem;
+    padding: 2rem;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    animation: fadeSlideUp 0.6s ease both;
+  }
+
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .intro-block h1 {
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
+  }
+
+  .intro-block p {
+    color: #a0a0a0;
+    font-size: 13px;
+    line-height: 1.8;
+    max-width: 640px;
+  }
+
+  .intro-block p + p { margin-top: 0.75rem; }
+
+  .highlight { color: var(--accent); font-weight: 600; }
+
+  /* Part labels */
+  .part-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 3px 10px;
+    margin-bottom: 1rem;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  /* Animations */
+  .section-reveal {
+    animation: fadeSlideUp 0.5s ease both;
+  }
+
+  @media (max-width: 640px) {
+    #main-content { padding: 2rem 1rem 7rem; }
+    #header { padding: 0 1rem; }
+    #submit-section { flex-direction: column; align-items: stretch; }
+    .submit-btn { text-align: center; }
+    .landing-title { font-size: 1.8rem; }
+    #timer-display { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── LANDING ── -->
+<div id="landing">
+  <div class="logo-mark">Ottermap × TerraSync · Qualifier</div>
+  <h1 class="landing-title">AI-Augmented Builder<br>Qualifier Task</h1>
+  <p class="landing-sub">Internship · Remote (India) · Batch 2026</p>
+
+  <div class="rules-box">
+    <h3>Before you begin</h3>
+    <div class="rule-item">
+      <span class="rule-num">01</span>
+      <span class="rule-text"><strong>45-minute window.</strong> The timer starts the moment you click Start. Once started, it cannot be paused or reset.</span>
+    </div>
+    <div class="rule-item">
+      <span class="rule-num">02</span>
+      <span class="rule-text"><strong>5 parts, in order.</strong> Each part unlocks after the previous one. You may go back and edit earlier answers at any time.</span>
+    </div>
+    <div class="rule-item">
+      <span class="rule-num">03</span>
+      <span class="rule-text"><strong>AI tools are allowed and expected.</strong> Be explicit about what you used and how — this is evaluated, not penalised.</span>
+    </div>
+    <div class="rule-item">
+      <span class="rule-num">04</span>
+      <span class="rule-text"><strong>Do not refresh the page.</strong> Your progress is saved in the browser. A refresh will not reset the timer, but may clear unsaved text.</span>
+    </div>
+    <div class="rule-item">
+      <span class="rule-num">05</span>
+      <span class="rule-text"><strong>Submit before time runs out.</strong> When the timer hits 0:00, the form locks and cannot be submitted.</span>
+    </div>
+  </div>
+
+  <div id="name-input-wrap">
+    <label for="candidate-name">Your full name</label>
+    <input type="text" id="candidate-name" placeholder="e.g. Priya Sharma" autocomplete="name" />
+  </div>
+
+  <button class="start-btn" id="start-btn" onclick="startTask()" disabled>
+    Start 45-Minute Timer →
+  </button>
+  <p class="warning-text">⚠ You cannot pause or restart once you begin.</p>
+</div>
+
+<!-- ── EXPIRED ── -->
+<div id="expired-overlay">
+  <div class="expired-icon">⏱</div>
+  <div class="expired-title">Time's Up</div>
+  <p class="expired-sub">The 45-minute window has closed. Your task can no longer be submitted.<br><br>If you believe this is an error, contact <strong>hiring@ottermap.com</strong></p>
+</div>
+
+<!-- ── SUBMITTED ── -->
+<div id="submitted-screen">
+  <div class="submitted-check">✓</div>
+  <div class="submitted-title">Submission Received</div>
+  <p class="submitted-sub">Your qualifier task has been submitted successfully. Our team at Ottermap will review your responses and reach out within 5–7 business days if you are selected to proceed to the next stage.</p>
+  <div class="submitted-id" id="submission-id"></div>
+</div>
+
+<!-- ── MAIN TASK APP ── -->
+<div id="task-app">
+
+  <!-- Header -->
+  <div id="header">
+    <div class="header-left">
+      <span class="brand">OTTERMAP × TERRASYNC</span>
+      <span class="candidate-tag" id="candidate-tag-display"></span>
+    </div>
+    <div id="timer-wrap">
+      <div>
+        <div class="timer-label">Time Remaining</div>
+      </div>
+      <div id="timer-display">45:00</div>
+    </div>
+  </div>
+
+  <div class="progress-bar-wrap">
+    <div id="progress-bar"></div>
+  </div>
+
+  <!-- Content -->
+  <div id="main-content">
+
+    <!-- Intro -->
+    <div class="intro-block">
+      <h1>Qualifier Task<br><span style="color:var(--accent)">Ottermap × TerraSync</span></h1>
+      <p>You've been handed your first ticket on a live SaaS product. <span class="highlight">No PM. No design review. No morning standup call.</span> Everything happens in writing. The founder is in the US (EST). You work remotely from India.</p>
+      <p>Your job is to show us how you think, communicate, and use AI tools — not to write production code. Read the ticket below carefully, then work through each of the five parts.</p>
+    </div>
+
+    <!-- Context Block -->
+    <div class="context-box">
+      <h4>Context — Your working environment</h4>
+      <p>You've just joined <strong>TerraSync</strong> (via <strong>Ottermap</strong>) as an AI-Augmented Builder intern. TerraSync builds <strong>Velocity</strong> — a SaaS platform for Kress robotic-mower fleet optimization. The engineering team is small, async, and moves fast.</p>
+      <p>The codebase is ~50,000 lines of code. The stack is <strong>React 19 + TypeScript</strong> on the frontend and <strong>Python/Flask + Supabase (Postgres)</strong> on the backend. Work is tracked in <strong>Linear</strong>. Communication happens in writing — not calls.</p>
+      <p>It is <strong>Day 1</strong>. The founder (Wesley, EST) has just assigned you the following ticket.</p>
+    </div>
+
+    <!-- Ticket -->
+    <div class="ticket-card">
+      <div class="ticket-id">TER-431 · Priority: High · Status: Backlog</div>
+      <div class="ticket-title">Map-complete emails must link to production VELOCITY, not develop</div>
+      <div class="ticket-badges">
+        <span class="badge badge-high">High Priority</span>
+        <span class="badge badge-py">Python Backend</span>
+        <span class="badge badge-bug">Customer-Facing</span>
+      </div>
+      <div class="ticket-section">
+        <div class="ticket-section-label">Description</div>
+        <div class="ticket-body">Customers are receiving map-completion notification emails that contain a link pointing to the <code style="color:var(--accent);background:rgba(0,229,160,0.08);padding:1px 6px;">develop</code> environment (<code style="color:var(--accent);background:rgba(0,229,160,0.08);padding:1px 6px;">develop.velocity.app</code>) instead of the production environment (<code style="color:var(--accent);background:rgba(0,229,160,0.08);padding:1px 6px;">app.velocity.app</code>). Customers click the link and see an environment that doesn't match their live data — causing confusion and support tickets.</div>
+      </div>
+      <div class="ticket-section">
+        <div class="ticket-section-label">Acceptance Criteria</div>
+        <ul class="criteria-list">
+          <li>All map-complete email notifications link to <code style="color:var(--accent);background:rgba(0,229,160,0.08);padding:1px 6px;">app.velocity.app</code></li>
+          <li>The fix must not hardcode the URL as a string literal — it should be driven by an environment variable or config value</li>
+          <li>No other email templates are affected by this change</li>
+        </ul>
+      </div>
+      <div class="ticket-section">
+        <div class="ticket-section-label">Notes</div>
+        <div class="ticket-body">The email system uses the Python backend. The specific template file is not identified in this ticket.</div>
+      </div>
+    </div>
+
+    <!-- ── PART A ── -->
+    <div class="task-section active section-reveal" id="section-a">
+      <div class="section-header">
+        <span class="section-tag">Part A</span>
+        <span class="section-title">Clarifying Questions</span>
+        <span class="section-meta"><span class="dot-active"></span> ~5 min</span>
+      </div>
+      <div class="section-body">
+        <div class="part-time">⏱ Suggested: 5 minutes</div>
+        <div class="task-instruction">What would you ask before starting — and what would you assume if no one replied?</div>
+        <div class="task-note">List up to 3 clarifying questions. For each: (1) why you need that answer, and (2) what assumption you'd make and run with if no one responded within 2 hours. If you have fewer than 3 questions, that's fine — don't pad.</div>
+
+        <label class="answer-label" for="ans-a">Your answer</label>
+        <textarea id="ans-a" placeholder="E.g. — Q1: Is there a central email config file or is the URL set inline per-template? I need this to know whether to make one fix or N fixes. Assumption if no reply: I'll grep the codebase for the string 'develop.velocity.app' and fix all occurrences I find..." rows="8"></textarea>
+        <div class="char-count" id="count-a">0 characters</div>
+      </div>
+    </div>
+
+    <!-- ── PART B ── -->
+    <div class="task-section locked" id="section-b">
+      <div class="section-header">
+        <span class="section-tag">Part B</span>
+        <span class="section-title">Implementation Plan</span>
+        <span class="section-meta" id="meta-b">Unlocks after Part A</span>
+      </div>
+      <div class="section-body">
+        <div class="part-time">⏱ Suggested: 15 minutes</div>
+        <div class="task-instruction">Without writing actual code, describe exactly what you would do to ship this fix.</div>
+        <div class="task-note">Be specific enough that another developer could execute it. Cover: where you'd look first, how you'd locate the relevant file, what change you'd make, how you'd verify it worked before raising a PR, and what you'd write in your PR proof-of-work comment.</div>
+
+        <label class="answer-label" for="ans-b">Your answer</label>
+        <textarea id="ans-b" placeholder="E.g. — First, I'd search the codebase for 'develop.velocity.app' using grep or IDE search to locate the template(s) and surrounding config. Then..." rows="10"></textarea>
+        <div class="char-count" id="count-b">0 characters</div>
+      </div>
+      <div class="lock-overlay" id="lock-b">
+        <span class="lock-icon">🔒</span>
+        <span>Unlocks after you start answering Part A</span>
+      </div>
+    </div>
+
+    <!-- ── PART C ── -->
+    <div class="task-section locked" id="section-c">
+      <div class="section-header">
+        <span class="section-tag">Part C</span>
+        <span class="section-title">AI Workflow</span>
+        <span class="section-meta" id="meta-c">Unlocks after Part B</span>
+      </div>
+      <div class="section-body">
+        <div class="part-time">⏱ Suggested: 10 minutes</div>
+        <div class="task-instruction">Describe exactly how you'd use AI tooling to complete this ticket.</div>
+        <div class="task-note">Be specific: what tool, what prompt or instruction, what you'd trust directly from the output, and what you'd verify yourself. Also call out at least one step where AI is NOT the right tool and why.</div>
+
+        <div class="sub-q">
+          <div class="sub-q-label">C.1 — Tool + Prompt</div>
+          <div class="sub-q-prompt">Which AI tool would you use and what would you actually type or say to it first?</div>
+          <label class="answer-label" for="ans-c1">Your answer</label>
+          <textarea id="ans-c1" placeholder="E.g. — I'd open Claude Code and say: 'Search this codebase for the string develop.velocity.app and any adjacent email template configuration. Show me the files and the relevant lines...'" rows="5"></textarea>
+          <div class="char-count" id="count-c1">0 characters</div>
+        </div>
+
+        <hr class="task-divider">
+
+        <div class="sub-q">
+          <div class="sub-q-label">C.2 — Trust vs. Verify</div>
+          <div class="sub-q-prompt">What part of the AI's output would you use directly, and what would you check yourself before committing?</div>
+          <label class="answer-label" for="ans-c2">Your answer</label>
+          <textarea id="ans-c2" placeholder="E.g. — I'd trust the file-search results but verify the actual line change myself — AI might miss a second template or get the env-var name wrong..." rows="5"></textarea>
+          <div class="char-count" id="count-c2">0 characters</div>
+        </div>
+
+        <hr class="task-divider">
+
+        <div class="sub-q">
+          <div class="sub-q-label">C.3 — When AI is the wrong tool</div>
+          <div class="sub-q-prompt">Name one step in this task where you would NOT use AI, and briefly explain why.</div>
+          <label class="answer-label" for="ans-c3">Your answer</label>
+          <textarea id="ans-c3" placeholder="E.g. — Final verification: I'd manually trigger a test email in the staging environment myself, because AI can't actually observe the sent email output..." rows="4"></textarea>
+          <div class="char-count" id="count-c3">0 characters</div>
+        </div>
+      </div>
+      <div class="lock-overlay" id="lock-c">
+        <span class="lock-icon">🔒</span>
+        <span>Unlocks after you start answering Part B</span>
+      </div>
+    </div>
+
+    <!-- ── PART D ── -->
+    <div class="task-section locked" id="section-d">
+      <div class="section-header">
+        <span class="section-tag">Part D</span>
+        <span class="section-title">Edge Case &amp; Scope</span>
+        <span class="section-meta" id="meta-d">Unlocks after Part C</span>
+      </div>
+      <div class="section-body">
+        <div class="part-time">⏱ Suggested: 10 minutes</div>
+
+        <div class="sub-q">
+          <div class="sub-q-label">D.1 — Edge case</div>
+          <div class="sub-q-prompt">Identify one real risk or edge case this ticket doesn't mention that you'd flag or handle.</div>
+          <label class="answer-label" for="ans-d1">Your answer</label>
+          <textarea id="ans-d1" placeholder="E.g. — If the env var is not set in production (missing from .env or deployment config), the email link would silently render as blank or throw. I'd add a fallback or assert the var is present at startup..." rows="5"></textarea>
+          <div class="char-count" id="count-d1">0 characters</div>
+        </div>
+
+        <hr class="task-divider">
+
+        <div class="sub-q">
+          <div class="sub-q-label">D.2 — Out of scope</div>
+          <div class="sub-q-prompt">Name one thing you would explicitly NOT touch in this task — and explain why staying in scope matters here.</div>
+          <label class="answer-label" for="ans-d2">Your answer</label>
+          <textarea id="ans-d2" placeholder="E.g. — I would not redesign the email template or change the copy. The ticket asks for one specific fix. Widening scope risks introducing new bugs and delays a simple, verifiable change..." rows="5"></textarea>
+          <div class="char-count" id="count-d2">0 characters</div>
+        </div>
+      </div>
+      <div class="lock-overlay" id="lock-d">
+        <span class="lock-icon">🔒</span>
+        <span>Unlocks after you start answering Part C</span>
+      </div>
+    </div>
+
+    <!-- ── PART E ── -->
+    <div class="task-section locked" id="section-e">
+      <div class="section-header">
+        <span class="section-tag">Part E</span>
+        <span class="section-title">Async Standup Update</span>
+        <span class="section-meta" id="meta-e">Unlocks after Part D</span>
+      </div>
+      <div class="section-body">
+        <div class="part-time">⏱ Suggested: 5 minutes</div>
+        <div class="task-instruction">Write your end-of-day async standup update to the founder.</div>
+        <div class="task-note">3–5 sentences. Assume you've implemented the fix and submitted the PR. Wesley is in the US, reading this in the morning. Be specific, be concise, and give him exactly what he needs to review your PR intelligently.</div>
+
+        <label class="answer-label" for="ans-e">Your standup message</label>
+        <textarea id="ans-e" placeholder="E.g. — Shipped TER-431. Found the develop URL hardcoded in /backend/emails/map_complete.py line 47. Moved it to APP_BASE_URL env var, added a startup assertion. Tested locally by triggering a map-complete event against the sandbox — link renders correctly. PR is up: [link]. One thing I'd flag for you: there's a second email template (TER-map-reminder) using the same pattern — I didn't touch it but left a comment in the PR." rows="6"></textarea>
+        <div class="char-count" id="count-e">0 characters</div>
+      </div>
+      <div class="lock-overlay" id="lock-e">
+        <span class="lock-icon">🔒</span>
+        <span>Unlocks after you start answering Part D</span>
+      </div>
+    </div>
+
+    <div style="height:80px;"></div>
+  </div>
+
+  <!-- Submit bar -->
+  <div id="submit-section">
+    <div class="submit-info">
+      <strong>Ready to submit?</strong><br>
+      Review all five parts before submitting. You cannot edit after submission.
+    </div>
+    <button class="submit-btn" id="submit-btn" onclick="submitTask()">Submit Task →</button>
+  </div>
+
+</div><!-- end task-app -->
+
+<script>
+const TOTAL_SECONDS = 45 * 60;
+let timeLeft = TOTAL_SECONDS;
+let timerInterval = null;
+let taskStarted = false;
+let candidateName = '';
+
+// Enable start button when name entered
+document.getElementById('candidate-name').addEventListener('input', function() {
+  const btn = document.getElementById('start-btn');
+  btn.disabled = this.value.trim().length < 2;
+});
+
+// Section unlock tracking
+const unlockMap = {
+  'ans-a': 'section-b',
+  'ans-b': 'section-c',
+  'ans-c1': 'section-d',
+  'ans-d1': 'section-e'
+};
+
+const lockIds = {
+  'section-b': 'lock-b',
+  'section-c': 'lock-c',
+  'section-d': 'lock-d',
+  'section-e': 'lock-e'
+};
+
+const unlocked = new Set(['section-a']);
+
+// Textarea listeners
+['ans-a','ans-b','ans-c1','ans-c2','ans-c3','ans-d1','ans-d2','ans-e'].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  el.addEventListener('input', function() {
+    // Char count
+    const countEl = document.getElementById('count-' + id.replace('ans-',''));
+    if (countEl) countEl.textContent = this.value.length + ' characters';
+
+    // Unlock next section
+    const nextSection = unlockMap[id];
+    if (nextSection && this.value.trim().length >= 20 && !unlocked.has(nextSection)) {
+      unlockSection(nextSection);
+    }
+
+    // Save to sessionStorage
+    sessionStorage.setItem('q_' + id, this.value);
+
+    // Show submit bar when part E has content
+    checkSubmitVisibility();
+  });
+
+  // Restore from session
+  const saved = sessionStorage.getItem('q_' + id);
+  if (saved) {
+    el.value = saved;
+    const countEl = document.getElementById('count-' + id.replace('ans-',''));
+    if (countEl) countEl.textContent = saved.length + ' characters';
+  }
+});
+
+function unlockSection(sectionId) {
+  unlocked.add(sectionId);
+  const section = document.getElementById(sectionId);
+  const lock = document.getElementById(lockIds[sectionId]);
+  if (!section) return;
+
+  section.classList.remove('locked');
+  section.classList.add('active', 'section-reveal');
+  if (lock) lock.style.display = 'none';
+
+  // Smooth scroll to section
+  setTimeout(() => {
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+}
+
+function checkSubmitVisibility() {
+  const e = document.getElementById('ans-e');
+  const submitBar = document.getElementById('submit-section');
+  if (e && e.value.trim().length >= 20) {
+    submitBar.style.display = 'flex';
+  }
+}
+
+function startTask() {
+  candidateName = document.getElementById('candidate-name').value.trim();
+  if (candidateName.length < 2) return;
+
+  // Save start info
+  sessionStorage.setItem('q_name', candidateName);
+  sessionStorage.setItem('q_start', Date.now().toString());
+
+  // Hide landing, show app
+  document.getElementById('landing').style.display = 'none';
+  const app = document.getElementById('task-app');
+  app.style.display = 'block';
+
+  // Set candidate tag
+  document.getElementById('candidate-tag-display').textContent = candidateName;
+
+  taskStarted = true;
+  startTimer();
+}
+
+function startTimer() {
+  // Check if already started (restore)
+  const startTime = sessionStorage.getItem('q_start');
+  if (startTime) {
+    const elapsed = Math.floor((Date.now() - parseInt(startTime)) / 1000);
+    timeLeft = Math.max(0, TOTAL_SECONDS - elapsed);
+  }
+
+  if (timeLeft <= 0) {
+    expireTask();
+    return;
+  }
+
+  updateTimerDisplay();
+
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+    updateProgressBar();
+
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      expireTask();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const mins = Math.floor(timeLeft / 60);
+  const secs = timeLeft % 60;
+  const display = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+  const el = document.getElementById('timer-display');
+  el.textContent = display;
+
+  el.classList.remove('warn','danger');
+  if (timeLeft <= 300 && timeLeft > 120) el.classList.add('warn');
+  if (timeLeft <= 120) el.classList.add('danger');
+}
+
+function updateProgressBar() {
+  const pct = (timeLeft / TOTAL_SECONDS) * 100;
+  const bar = document.getElementById('progress-bar');
+  bar.style.width = pct + '%';
+
+  if (pct <= 25) bar.style.background = 'var(--danger)';
+  else if (pct <= 50) bar.style.background = 'var(--warn)';
+  else bar.style.background = 'var(--accent)';
+}
+
+function expireTask() {
+  clearInterval(timerInterval);
+  document.getElementById('timer-display').textContent = '00:00';
+
+  // Lock all textareas
+  document.querySelectorAll('textarea').forEach(t => t.disabled = true);
+  document.getElementById('submit-section').style.display = 'none';
+  document.getElementById('expired-overlay').style.display = 'flex';
+}
+
+function submitTask() {
+  if (timeLeft <= 0) return;
+
+  // Collect all answers
+  const answers = {
+    name: sessionStorage.getItem('q_name') || candidateName,
+    submittedAt: new Date().toISOString(),
+    timeUsed: `${Math.floor((TOTAL_SECONDS - timeLeft) / 60)}m ${(TOTAL_SECONDS - timeLeft) % 60}s`,
+    partA: document.getElementById('ans-a').value,
+    partB: document.getElementById('ans-b').value,
+    partC1: document.getElementById('ans-c1').value,
+    partC2: document.getElementById('ans-c2').value,
+    partC3: document.getElementById('ans-c3').value,
+    partD1: document.getElementById('ans-d1').value,
+    partD2: document.getElementById('ans-d2').value,
+    partE: document.getElementById('ans-e').value,
+  };
+
+  // Check all parts have something
+  const parts = ['partA','partB','partC1','partC2','partC3','partD1','partD2','partE'];
+  const empty = parts.filter(p => !answers[p] || answers[p].trim().length < 10);
+
+  if (empty.length > 0) {
+    const confirmSubmit = confirm(`${empty.length} section(s) appear incomplete. Are you sure you want to submit now?`);
+    if (!confirmSubmit) return;
+  }
+
+  // Stop timer
+  clearInterval(timerInterval);
+
+  // Generate submission ID
+  const subId = 'VQ-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2,6).toUpperCase();
+  answers.submissionId = subId;
+
+  // Store locally
+  sessionStorage.setItem('q_submitted', JSON.stringify(answers));
+
+  // Prepare email body
+  const emailBody = buildEmailBody(answers);
+  const emailSubject = encodeURIComponent(`[Ottermap × TerraSync Qualifier] ${answers.name} — ${subId}`);
+  const emailTo = 'hiring@ottermap.com';
+
+  // Show submitted screen
+  document.getElementById('submit-section').style.display = 'none';
+  const screen = document.getElementById('submitted-screen');
+  screen.style.display = 'flex';
+  document.getElementById('submission-id').textContent = `Submission ID: ${subId}`;
+
+  // Open email client with pre-filled content
+  setTimeout(() => {
+    window.location.href = `mailto:${emailTo}?subject=${emailSubject}&body=${encodeURIComponent(emailBody)}`;
+  }, 1200);
+}
+
+function buildEmailBody(a) {
+  return `OTTERMAP × TERRASYNC — QUALIFIER TASK SUBMISSION
+================================================
+Submission ID : ${a.submissionId}
+Candidate     : ${a.name}
+Submitted At  : ${a.submittedAt}
+Time Used     : ${a.timeUsed}
+
+------------------------------------------------
+PART A — Clarifying Questions
+------------------------------------------------
+${a.partA}
+
+------------------------------------------------
+PART B — Implementation Plan
+------------------------------------------------
+${a.partB}
+
+------------------------------------------------
+PART C.1 — AI Tool + Prompt
+------------------------------------------------
+${a.partC1}
+
+------------------------------------------------
+PART C.2 — Trust vs. Verify
+------------------------------------------------
+${a.partC2}
+
+------------------------------------------------
+PART C.3 — When AI is the Wrong Tool
+------------------------------------------------
+${a.partC3}
+
+------------------------------------------------
+PART D.1 — Edge Case
+------------------------------------------------
+${a.partD1}
+
+------------------------------------------------
+PART D.2 — Out of Scope
+------------------------------------------------
+${a.partD2}
+
+------------------------------------------------
+PART E — Async Standup Update
+------------------------------------------------
+${a.partE}
+
+================================================
+End of submission ${a.submissionId}
+`;
+}
+
+// On page load — check if task was already started
+window.addEventListener('load', () => {
+  const savedName = sessionStorage.getItem('q_name');
+  const savedStart = sessionStorage.getItem('q_start');
+  const wasSubmitted = sessionStorage.getItem('q_submitted');
+
+  if (wasSubmitted) {
+    const data = JSON.parse(wasSubmitted);
+    document.getElementById('landing').style.display = 'none';
+    document.getElementById('submitted-screen').style.display = 'flex';
+    document.getElementById('submission-id').textContent = `Submission ID: ${data.submissionId}`;
+    return;
+  }
+
+  if (savedName && savedStart) {
+    const elapsed = Math.floor((Date.now() - parseInt(savedStart)) / 1000);
+    if (elapsed >= TOTAL_SECONDS) {
+      document.getElementById('landing').style.display = 'none';
+      expireTask();
+      document.getElementById('expired-overlay').style.display = 'flex';
+      return;
+    }
+
+    // Restore session
+    candidateName = savedName;
+    document.getElementById('landing').style.display = 'none';
+    const app = document.getElementById('task-app');
+    app.style.display = 'block';
+    document.getElementById('candidate-tag-display').textContent = candidateName;
+    taskStarted = true;
+
+    // Restore textareas and unlock sections
+    ['ans-a','ans-b','ans-c1','ans-c2','ans-c3','ans-d1','ans-d2','ans-e'].forEach(id => {
+      const saved = sessionStorage.getItem('q_' + id);
+      if (saved) {
+        const el = document.getElementById(id);
+        if (el) {
+          el.value = saved;
+          const countEl = document.getElementById('count-' + id.replace('ans-',''));
+          if (countEl) countEl.textContent = saved.length + ' characters';
+        }
+      }
+    });
+
+    // Re-evaluate unlocks
+    Object.entries(unlockMap).forEach(([ansId, sectionId]) => {
+      const el = document.getElementById(ansId);
+      if (el && el.value.trim().length >= 20) {
+        const section = document.getElementById(sectionId);
+        const lock = document.getElementById(lockIds[sectionId]);
+        if (section) {
+          section.classList.remove('locked');
+          section.classList.add('active');
+          unlocked.add(sectionId);
+        }
+        if (lock) lock.style.display = 'none';
+      }
+    });
+
+    checkSubmitVisibility();
+    startTimer();
+  }
+});
+</script>
+</body>
+</html>

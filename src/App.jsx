@@ -1,27 +1,45 @@
+import { useEffect } from "react";
+import { useQualifierTask } from "./hooks/useQualifierTask";
+import LandingScreen from "./components/qualifier/LandingScreen";
+import TaskApp from "./components/qualifier/TaskApp";
+import ExpiredOverlay from "./components/qualifier/ExpiredOverlay";
+import SubmittedScreen from "./components/qualifier/SubmittedScreen";
 
 function App() {
+  const task = useQualifierTask();
+
+  useEffect(() => {
+    document.title = "Ottermap × TerraSync — AI Builder Qualifier Task";
+  }, []);
+
 
   return (
-    <div
-      style={{
-        width: "100%",
-        height: "95vh",
-        display: "flex",
-        justifyItems: 'center',
-        alignContent: 'center',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}
-    >
-      <iframe
-        src="https://dev.ottermap.com/terraorder?auth=9d62b353b17045f2aa6fc5c77a6b87876404621d"
-        width="80%"
-        height="90%"
-        style={{ border: "none" }}
-        title="OtterMap TerraOrder"
-      />
-    </div>
-  )
+    <>
+      {task.screen === "landing" && (
+        <LandingScreen
+          candidateName={task.candidateName}
+          setCandidateName={task.setCandidateName}
+          candidateEmail={task.candidateEmail}
+          setCandidateEmail={task.setCandidateEmail}
+          candidatePhone={task.candidatePhone}
+          setCandidatePhone={task.setCandidatePhone}
+          canStart={task.canStart}
+          isStarting={task.isStarting}
+          startTask={task.startTask}
+        />
+      )}
+
+      {(task.screen === "task" || (task.screen === "expired" && task.showTaskContent)) && (
+        <TaskApp {...task} />
+      )}
+
+      {task.screen === "expired" && <ExpiredOverlay />}
+
+      {task.screen === "submitted" && (
+        <SubmittedScreen submissionId={task.submissionId} />
+      )}
+    </>
+  );
 }
 
-export default App
+export default App;
