@@ -71,7 +71,7 @@ export default function LandingScreen({
           Ottermap × TerraSync · Qualifier
         </div>
 
-        <h1 className="font-sans font-extrabold text-[1.75rem] sm:text-[clamp(2rem,5vw,3.5rem)] leading-tight tracking-tight mb-3 sm:mb-4 bg-linear-to-br from-white to-[#a0a0a0] bg-clip-text text-transparent px-2">
+        <h1 className="font-sans font-extrabold text-[1.75rem] sm:text-[clamp(2rem,5vw,3.5rem)] leading-tight tracking-tight mb-3 sm:mb-4 bg-gradient-to-br from-white to-[#a0a0a0] bg-clip-text text-transparent px-2">
           AI-Augmented Builder
           <br />
           Qualifier Task
