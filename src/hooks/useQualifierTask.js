@@ -164,9 +164,9 @@ export function useQualifierTask() {
     if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current);
     saveDebounceRef.current = setTimeout(() => {
       saveAnswers(subId, nextAnswers).catch((err) => {
-        console.error("Auto-save failed:", err);
+        console.error("Auto-save failed:", err.message || err);
       });
-    }, 1500);
+    }, 800);
   }, []);
 
   const getLatestAnswers = useCallback(() => {
@@ -283,6 +283,7 @@ export function useQualifierTask() {
         }
       }
 
+      // Single upsert call with all answers + submitted status
       await submitSubmission(subId, payload);
 
       clearTimer();

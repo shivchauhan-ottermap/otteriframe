@@ -13,32 +13,42 @@ export function createSubmissionId() {
   return generateSubmissionId();
 }
 
-function toDbRow(submissionId, payload, { includeStartedAt = false } = {}) {
-  const row = {
-    submission_id: submissionId,
-    name: payload.name,
-    email: payload.email,
-    phone: payload.phone,
-    part_a: payload.partA ?? "",
-    part_b: payload.partB ?? "",
-    part_c1: payload.partC1 ?? "",
-    part_c2: payload.partC2 ?? "",
-    part_c3: payload.partC3 ?? "",
-    part_d1: payload.partD1 ?? "",
-    part_d2: payload.partD2 ?? "",
-    part_e: payload.partE ?? "",
-    status: payload.status ?? "in_progress",
-  };
-
-  if (payload.submittedAt) row.submitted_at = payload.submittedAt;
-  if (payload.timeUsed) row.time_used = payload.timeUsed;
-  if (includeStartedAt) row.started_at = payload.startedAt ?? new Date().toISOString();
-
-  return row;
+function formatSupabaseError(error) {
+  if (error.code === "PGRST202") {
+    return (
+      "Database setup incomplete. Ask your admin to run supabase/setup_complete.sql in the Supabase SQL Editor."
+    );
+  }
+  return [error.message, error.details, error.hint].filter(Boolean).join(" — ");
 }
 
-function formatSupabaseError(error) {
-  return [error.message, error.details, error.hint].filter(Boolean).join(" — ");
+function buildPayload(submissionId, answers, extra = {}) {
+  const payload = {
+    submission_id: submissionId,
+    part_a: answers.a ?? "",
+    part_b: answers.b ?? "",
+    part_c1: answers.c1 ?? "",
+    part_c2: answers.c2 ?? "",
+    part_c3: answers.c3 ?? "",
+    part_d1: answers.d1 ?? "",
+    part_d2: answers.d2 ?? "",
+    part_e: answers.e ?? "",
+  };
+
+  if (extra.name) payload.name = extra.name;
+  if (extra.email) payload.email = extra.email;
+  if (extra.phone) payload.phone = extra.phone;
+  if (extra.status) payload.status = extra.status;
+  if (extra.submittedAt) payload.submitted_at = extra.submittedAt;
+  if (extra.timeUsed) payload.time_used = extra.timeUsed;
+  if (extra.startedAt) payload.started_at = extra.startedAt;
+
+  return payload;
+}
+
+async function persist(payload) {
+  const { error } = await supabase.rpc("save_qualifier_answers", { payload });
+  if (error) throw new Error(formatSupabaseError(error));
 }
 
 export async function startSubmission({ submissionId, name, email, phone }) {
@@ -46,46 +56,29 @@ export async function startSubmission({ submissionId, name, email, phone }) {
     throw new Error("Supabase is not configured. Check your .env file.");
   }
 
-  const { data, error } = await supabase
-    .from("qualifier_submissions")
-    .insert({
-      submission_id: submissionId,
-      name,
-      email,
-      phone,
-      started_at: new Date().toISOString(),
-      status: "in_progress",
-    })
-    .select("submission_id")
-    .single();
+  await persist({
+    submission_id: submissionId,
+    name,
+    email,
+    phone,
+    status: "in_progress",
+    started_at: new Date().toISOString(),
+    part_a: "",
+    part_b: "",
+    part_c1: "",
+    part_c2: "",
+    part_c3: "",
+    part_d1: "",
+    part_d2: "",
+    part_e: "",
+  });
 
-  if (error) throw new Error(formatSupabaseError(error));
-  if (!data) throw new Error("Failed to create submission record.");
-  return data;
+  return { submission_id: submissionId };
 }
 
 export async function saveAnswers(submissionId, answers) {
   if (!isSupabaseConfigured || !submissionId) return;
-
-  const { data, error } = await supabase
-    .from("qualifier_submissions")
-    .update({
-      part_a: answers.a ?? "",
-      part_b: answers.b ?? "",
-      part_c1: answers.c1 ?? "",
-      part_c2: answers.c2 ?? "",
-      part_c3: answers.c3 ?? "",
-      part_d1: answers.d1 ?? "",
-      part_d2: answers.d2 ?? "",
-      part_e: answers.e ?? "",
-    })
-    .eq("submission_id", submissionId)
-    .select("submission_id");
-
-  if (error) throw new Error(formatSupabaseError(error));
-  if (!data?.length) {
-    throw new Error(`No submission found for id ${submissionId}`);
-  }
+  await persist(buildPayload(submissionId, answers));
 }
 
 export async function submitSubmission(submissionId, payload) {
@@ -97,38 +90,29 @@ export async function submitSubmission(submissionId, payload) {
     throw new Error("Missing submission ID. Please refresh and start the task again.");
   }
 
-  const row = toDbRow(submissionId, {
-    ...payload,
-    status: "submitted",
-  });
-
-  // Try update first (normal path after start)
-  const { data: updated, error: updateError } = await supabase
-    .from("qualifier_submissions")
-    .update(row)
-    .eq("submission_id", submissionId)
-    .select("submission_id, part_a, part_e, status, submitted_at");
-
-  if (updateError) throw new Error(formatSupabaseError(updateError));
-
-  if (updated?.length) {
-    return updated[0];
-  }
-
-  // Fallback: upsert in case the row is missing or submission_id didn't match
-  const { data: upserted, error: upsertError } = await supabase
-    .from("qualifier_submissions")
-    .upsert(
+  await persist(
+    buildPayload(
+      submissionId,
       {
-        ...row,
-        started_at: payload.startedAt ?? new Date().toISOString(),
+        a: payload.partA,
+        b: payload.partB,
+        c1: payload.partC1,
+        c2: payload.partC2,
+        c3: payload.partC3,
+        d1: payload.partD1,
+        d2: payload.partD2,
+        e: payload.partE,
       },
-      { onConflict: "submission_id" }
+      {
+        name: payload.name,
+        email: payload.email,
+        phone: payload.phone,
+        status: "submitted",
+        submittedAt: payload.submittedAt,
+        timeUsed: payload.timeUsed,
+      }
     )
-    .select("submission_id, part_a, part_e, status, submitted_at")
-    .single();
+  );
 
-  if (upsertError) throw new Error(formatSupabaseError(upsertError));
-  if (!upserted) throw new Error("Submission could not be saved.");
-  return upserted;
+  return { submission_id: submissionId };
 }

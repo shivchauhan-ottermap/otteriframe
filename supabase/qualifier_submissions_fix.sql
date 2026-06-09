@@ -12,25 +12,21 @@ alter table public.qualifier_submissions add column if not exists submitted_at t
 alter table public.qualifier_submissions add column if not exists time_used text;
 alter table public.qualifier_submissions add column if not exists status text default 'in_progress';
 
--- Required for .select() after insert/update from the client
-drop policy if exists "anon can select qualifier submissions" on public.qualifier_submissions;
-create policy "anon can select qualifier submissions"
-  on public.qualifier_submissions
-  for select
-  to anon
-  using (true);
-
+-- Insert/update for all roles (anon + authenticated)
 drop policy if exists "anon can insert qualifier submissions" on public.qualifier_submissions;
-create policy "anon can insert qualifier submissions"
+drop policy if exists "anon can update qualifier submissions" on public.qualifier_submissions;
+drop policy if exists "public can insert qualifier submissions" on public.qualifier_submissions;
+drop policy if exists "public can update qualifier submissions" on public.qualifier_submissions;
+
+create policy "public can insert qualifier submissions"
   on public.qualifier_submissions
   for insert
-  to anon
+  to public
   with check (true);
 
-drop policy if exists "anon can update qualifier submissions" on public.qualifier_submissions;
-create policy "anon can update qualifier submissions"
+create policy "public can update qualifier submissions"
   on public.qualifier_submissions
   for update
-  to anon
+  to public
   using (true)
   with check (true);

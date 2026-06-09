@@ -23,21 +23,22 @@ create table if not exists public.qualifier_submissions (
 
 alter table public.qualifier_submissions enable row level security;
 
-create policy "anon can insert qualifier submissions"
+drop policy if exists "anon can insert qualifier submissions" on public.qualifier_submissions;
+drop policy if exists "public can insert qualifier submissions" on public.qualifier_submissions;
+create policy "public can insert qualifier submissions"
   on public.qualifier_submissions
   for insert
-  to anon
+  to public
   with check (true);
 
-create policy "anon can update qualifier submissions"
+drop policy if exists "anon can update qualifier submissions" on public.qualifier_submissions;
+drop policy if exists "public can update qualifier submissions" on public.qualifier_submissions;
+create policy "public can update qualifier submissions"
   on public.qualifier_submissions
   for update
-  to anon
+  to public
   using (true)
   with check (true);
 
-create policy "anon can select qualifier submissions"
-  on public.qualifier_submissions
-  for select
-  to anon
-  using (true);
+-- No public read — admins only (see supabase/admins.sql)
+drop policy if exists "anon can select qualifier submissions" on public.qualifier_submissions;
