@@ -299,7 +299,7 @@ export function useQualifierTask() {
       setScreen("submitted");
 
       setTimeout(() => {
-        window.location.href = `mailto:hiring@ottermap.com?subject=${emailSubject}&body=${encodeURIComponent(emailBody)}`;
+        window.location.href = `mailto:hr@ottermap.com?subject=${emailSubject}&body=${encodeURIComponent(emailBody)}`;
       }, 1200);
     } catch (err) {
       // console.error(err);

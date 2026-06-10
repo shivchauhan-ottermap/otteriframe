@@ -10,7 +10,7 @@ export default function ExpiredOverlay() {
         <br />
         <br />
         If you believe this is an error, contact{" "}
-        <strong className="text-text break-all">hiring@ottermap.com</strong>
+        <strong className="text-text break-all">hr@ottermap.com</strong>
       </p>
     </div>
   );
