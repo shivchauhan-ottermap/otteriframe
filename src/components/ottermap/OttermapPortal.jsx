@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { TIMELINE_HOURS } from "../../utils/saveOttermapChallenge";
+import { downloadAssetPack, hasAssetPack } from "../../utils/downloadAssetPack";
 // Palette: deep slate base, electric teal accent, warm amber for alerts
 // Type: mono for data/labels, Inter-like sans for body
 // Signature: animated countdown with satellite-scan sweep line
@@ -9,7 +11,7 @@ const ASSETS = [
     icon: "🛰️",
     label: "Aerial Imagery Pack",
     description: "3 high-resolution georeferenced orthophotos (.tif)",
-    size: "~2.4 GB",
+    size: "~20 MB",
     url: "#",
   },
   {
@@ -17,7 +19,7 @@ const ASSETS = [
     icon: "🗂️",
     label: "Feature Layers",
     description: "GeoJSON & Shapefile annotations for all 3 parcels",
-    size: "~18 MB",
+    size: "~980 KB",
     url: "#",
   },
   {
@@ -78,6 +80,20 @@ export default function OttermapPortal({
   updateDeliverable,
   updateSubmitNote,
 }) {
+  const [downloadingAsset, setDownloadingAsset] = useState(null);
+
+  async function handleAssetDownload(assetId) {
+    if (!hasAssetPack(assetId) || downloadingAsset) return;
+
+    setDownloadingAsset(assetId);
+    try {
+      await downloadAssetPack(assetId);
+    } catch (err) {
+      alert(err.message || "Download failed. Please try again.");
+    } finally {
+      setDownloadingAsset(null);
+    }
+  }
 
   // ── STYLES ────────────────────────────────────────────────────
   const css = `
@@ -354,8 +370,13 @@ export default function OttermapPortal({
       white-space: nowrap;
       transition: background 0.15s;
       flex-shrink: 0;
+      appearance: none;
     }
     .dl-btn:hover { background: #00d4aa28; }
+    .dl-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
 
     /* ── Feature chips ── */
     .chip-grid {
@@ -758,9 +779,20 @@ export default function OttermapPortal({
                           <div className="asset-desc">{a.description}</div>
                         </div>
                         <span className="asset-size">{a.size}</span>
-                        <a className="dl-btn" href={a.url}>
-                          ↓ Download
-                        </a>
+                        {hasAssetPack(a.id) ? (
+                          <button
+                            type="button"
+                            className="dl-btn"
+                            disabled={downloadingAsset === a.id}
+                            onClick={() => handleAssetDownload(a.id)}
+                          >
+                            {downloadingAsset === a.id ? "Preparing…" : "↓ Download"}
+                          </button>
+                        ) : (
+                          <a className="dl-btn" href={a.url}>
+                            ↓ Download
+                          </a>
+                        )}
                       </div>
                     ))}
                   </div>
