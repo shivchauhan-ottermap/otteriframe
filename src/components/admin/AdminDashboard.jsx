@@ -25,11 +25,36 @@ function formatDate(value) {
   });
 }
 
-function AnswerBlock({ label, value }) {
+function LinkBlock({ label, value }) {
   if (!value?.trim()) return null;
+  const isUrl = /^https?:\/\//i.test(value.trim());
+
   return (
     <div className="mb-4">
       <div className="text-[10px] tracking-[0.15em] uppercase text-muted mb-1.5">{label}</div>
+      {isUrl ? (
+        <a
+          href={value.trim()}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[13px] text-accent hover:underline break-all"
+        >
+          {value.trim()}
+        </a>
+      ) : (
+        <div className="text-[13px] text-[#c0c0c0] leading-relaxed whitespace-pre-wrap bg-bg/50 border border-border p-3">
+          {value}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function NotesBlock({ value }) {
+  if (!value?.trim()) return null;
+  return (
+    <div className="mb-4">
+      <div className="text-[10px] tracking-[0.15em] uppercase text-muted mb-1.5">Additional notes</div>
       <div className="text-[13px] text-[#c0c0c0] leading-relaxed whitespace-pre-wrap bg-bg/50 border border-border p-3">
         {value}
       </div>
@@ -57,6 +82,7 @@ export default function AdminDashboard({ onLogout, adminEmail }) {
     all: submissions.length,
     submitted: submissions.filter((s) => s.status === "submitted").length,
     in_progress: submissions.filter((s) => s.status === "in_progress").length,
+    expired: submissions.filter((s) => s.status === "expired").length,
   };
 
   return (
@@ -66,7 +92,7 @@ export default function AdminDashboard({ onLogout, adminEmail }) {
           <div className="font-sans font-extrabold text-[11px] tracking-[0.2em] uppercase text-accent mb-1">
             Ottermap Admin
           </div>
-          <h1 className="font-sans font-extrabold text-xl text-text">Qualifier Submissions</h1>
+          <h1 className="font-sans font-extrabold text-xl text-text">72-Hour Challenge Submissions</h1>
         </div>
         <div className="flex items-center gap-3 sm:gap-4">
           <span className="text-[11px] text-muted truncate max-w-[200px]">{adminEmail}</span>
@@ -86,6 +112,7 @@ export default function AdminDashboard({ onLogout, adminEmail }) {
             { key: "all", label: `All (${counts.all})` },
             { key: "submitted", label: `Submitted (${counts.submitted})` },
             { key: "in_progress", label: `In progress (${counts.in_progress})` },
+            { key: "expired", label: `Expired (${counts.expired})` },
           ].map(({ key, label }) => (
             <button
               key={key}
@@ -124,7 +151,10 @@ export default function AdminDashboard({ onLogout, adminEmail }) {
                     <div className="text-[12px] text-muted truncate">{row.email} · {row.phone}</div>
                     <div className="text-[11px] text-accent font-mono mt-1">{row.submission_id}</div>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex items-center gap-3 shrink-0 flex-wrap">
+                    <span className="text-[10px] tracking-widest uppercase text-muted border border-border px-2 py-0.5">
+                      {row.step || "—"}
+                    </span>
                     <StatusBadge status={row.status} />
                     <span className="text-[11px] text-muted hidden sm:inline">
                       {formatDate(row.submitted_at || row.started_at)}
@@ -137,19 +167,18 @@ export default function AdminDashboard({ onLogout, adminEmail }) {
                   <div className="px-4 sm:px-5 pb-5 pt-1 border-t border-border">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5 text-[12px] text-muted">
                       <div><span className="text-text font-semibold">Started:</span> {formatDate(row.started_at)}</div>
+                      <div><span className="text-text font-semibold">Deadline:</span> {formatDate(row.deadline_at)}</div>
                       <div><span className="text-text font-semibold">Submitted:</span> {formatDate(row.submitted_at)}</div>
                       <div><span className="text-text font-semibold">Time used:</span> {row.time_used || "—"}</div>
                       <div><span className="text-text font-semibold">Phone:</span> {row.phone}</div>
+                      <div><span className="text-text font-semibold">Current step:</span> {row.step || "—"}</div>
                     </div>
 
-                    <AnswerBlock label="Part A — Clarifying Questions" value={row.part_a} />
-                    <AnswerBlock label="Part B — Implementation Plan" value={row.part_b} />
-                    <AnswerBlock label="Part C.1 — AI Tool + Prompt" value={row.part_c1} />
-                    <AnswerBlock label="Part C.2 — Trust vs. Verify" value={row.part_c2} />
-                    <AnswerBlock label="Part C.3 — When AI is Wrong Tool" value={row.part_c3} />
-                    <AnswerBlock label="Part D.1 — Edge Case" value={row.part_d1} />
-                    <AnswerBlock label="Part D.2 — Out of Scope" value={row.part_d2} />
-                    <AnswerBlock label="Part E — Async Standup" value={row.part_e} />
+                    <LinkBlock label="GitHub repository" value={row.deliverable_repo} />
+                    <LinkBlock label="Model weights" value={row.deliverable_weights} />
+                    <LinkBlock label="Technical summary" value={row.deliverable_summary} />
+                    <LinkBlock label="Sample outputs" value={row.deliverable_samples} />
+                    <NotesBlock value={row.submit_notes} />
                   </div>
                 )}
               </div>

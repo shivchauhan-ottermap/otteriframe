@@ -8,7 +8,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     document.title = isAdmin
-      ? "Admin — Ottermap Qualifier"
+      ? "Admin — Ottermap Challenge"
       : "Admin Sign In — Ottermap";
   }, [isAdmin]);
 

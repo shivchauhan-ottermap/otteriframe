@@ -38,7 +38,7 @@ export async function signOutAdmin() {
 
 export async function fetchSubmissions() {
   const { data, error } = await supabase
-    .from("qualifier_submissions")
+    .from("ottermap_challenge_submissions")
     .select("*")
     .order("started_at", { ascending: false });
 
