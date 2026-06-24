@@ -20,6 +20,10 @@ const ASSET_PACKS = {
       "feature_layers/ShapeFile/3.geojson",
     ],
   },
+  brief: {
+    fileName: "task_brief.pdf",
+    path: "task_brief.pdf",
+  },
 };
 
 function triggerBlobDownload(blob, filename) {
@@ -39,6 +43,15 @@ export async function downloadAssetPack(assetId) {
   const pack = ASSET_PACKS[assetId];
   if (!pack) {
     throw new Error("Download pack not configured for this asset.");
+  }
+
+  if (pack.path) {
+    const response = await fetch(`/${pack.path}`);
+    if (!response.ok) {
+      throw new Error(`Failed to download ${pack.path}`);
+    }
+    triggerBlobDownload(await response.blob(), pack.fileName);
+    return;
   }
 
   const zip = new JSZip();
