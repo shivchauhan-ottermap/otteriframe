@@ -27,7 +27,7 @@ const ASSETS = [
     icon: "📋",
     label: "Task Brief (PDF)",
     description: "Full challenge specification and evaluation criteria",
-    size: "~340 KB",
+    size: "~96 KB",
     url: "#",
   },
 ];
