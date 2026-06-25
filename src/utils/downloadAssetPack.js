@@ -4,9 +4,9 @@ const ASSET_PACKS = {
   img: {
     zipName: "aerial_imagery_pack.zip",
     files: [
-      "aerial_imagery_pack/1.jpg",
+      "aerial_imagery_pack/1.tiff",
       "aerial_imagery_pack/2.tiff",
-      "aerial_imagery_pack/3.jpg",
+      "aerial_imagery_pack/3.tiff",
     ],
   },
   layers: {
