@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Velocity Zone Manager — Round 2 Technical Task · Ottermap × TerraSync</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,75..125,300..900;1,75..125,300..900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ── */
+:root {
+  --bg:        #0c1a0e;
+  --bg2:       #111f13;
+  --surface:   #172419;
+  --surface2:  #1e2e20;
+  --border:    #263829;
+  --border2:   #324f35;
+  --text:      #f0ede6;
+  --muted:     #7a9b7d;
+  --dim:       #4a6b4d;
+  --lime:      #c8f135;
+  --lime-dim:  rgba(200,241,53,0.08);
+  --lime-mid:  rgba(200,241,53,0.15);
+  --warn:      #f5c518;
+  --danger:    #ff6b4a;
+  --mono:      'JetBrains Mono', monospace;
+  --sans:      'Archivo', sans-serif;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* scrollbar */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 0 4rem;
+  overflow: hidden;
+}
+
+/* Mowing path SVG background */
+.mow-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.18;
+}
+
+.mow-stripe {
+  stroke: var(--lime);
+  stroke-width: 1;
+  fill: none;
+  stroke-dasharray: 6 3;
+  animation: dashMove 4s linear infinite;
+}
+.mow-stripe:nth-child(odd) { animation-direction: reverse; animation-duration: 5s; }
+.mow-stripe:nth-child(3n) { stroke-width: 0.5; opacity: 0.5; animation-duration: 6s; }
+
+@keyframes dashMove {
+  to { stroke-dashoffset: -36; }
+}
+
+/* hero gradient overlay */
+.hero::after {
+  content:'';
+  position:absolute;
+  inset:0;
+  background: linear-gradient(
+    to bottom,
+    rgba(12,26,14,0.3) 0%,
+    rgba(12,26,14,0.1) 40%,
+    rgba(12,26,14,0.95) 85%,
+    var(--bg) 100%
+  );
+  pointer-events:none;
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 2;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  width: 100%;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--lime);
+  margin-bottom: 1.5rem;
+}
+.eyebrow::before {
+  content:'';
+  display:block;
+  width:24px;
+  height:1px;
+  background:var(--lime);
+}
+
+.hero h1 {
+  font-family: var(--sans);
+  font-weight: 800;
+  font-size: clamp(2.4rem, 6vw, 4.2rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-stretch: 85%;
+  margin-bottom: 1.25rem;
+  max-width: 720px;
+}
+
+.hero h1 em {
+  font-style: normal;
+  color: var(--lime);
+}
+
+.hero-sub {
+  font-size: 16px;
+  color: var(--muted);
+  max-width: 560px;
+  line-height: 1.75;
+  margin-bottom: 2.5rem;
+  font-weight: 400;
+}
+
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.meta-chip {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  padding: 6px 14px;
+  letter-spacing: 0.08em;
+}
+.meta-chip strong { color: var(--text); font-weight: 600; }
+
+/* ── LAYOUT ── */
+.page-wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 2rem 8rem;
+}
+
+/* ── SECTION ── */
+.section {
+  border-top: 1px solid var(--border);
+  padding-top: 3rem;
+  margin-top: 3rem;
+}
+
+.section-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+  max-width: 120px;
+}
+
+.section h2 {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+  font-stretch: 90%;
+  margin-bottom: 1rem;
+  line-height: 1.25;
+}
+
+.section > p, .section > ul, .section > ol {
+  color: #c8c4bc;
+  margin-bottom: 0.9rem;
+  max-width: 700px;
+}
+
+/* ── FEATURE BLOCKS ── */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-top: 1.5rem;
+}
+
+.feature-block {
+  background: var(--surface);
+  padding: 1.5rem 1.75rem;
+  transition: background 0.2s;
+}
+.feature-block:hover { background: var(--surface2); }
+
+.feature-block h3 {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 13px;
+  font-stretch: 85%;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--lime);
+  margin-bottom: 0.75rem;
+}
+
+.feature-block ul {
+  list-style: none;
+  color: #b0aca4;
+  font-size: 13px;
+}
+.feature-block ul li {
+  padding: 3px 0;
+  padding-left: 1rem;
+  position: relative;
+}
+.feature-block ul li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--dim);
+  font-size: 11px;
+}
+
+/* ── TICKET CARD ── */
+.ticket {
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.ticket-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.ticket-id-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.ticket-id {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--lime);
+  letter-spacing: 0.08em;
+}
+
+.ticket-title {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.ticket-badges {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  padding: 3px 10px;
+  text-transform: uppercase;
+}
+.badge-high { background: rgba(245,197,24,0.12); color: var(--warn); border: 1px solid rgba(245,197,24,0.25); }
+.badge-be   { background: rgba(200,241,53,0.08); color: var(--lime); border: 1px solid rgba(200,241,53,0.2); }
+.badge-fs   { background: rgba(255,107,74,0.08); color: var(--danger); border: 1px solid rgba(255,107,74,0.2); }
+.badge-pt   { background: rgba(122,155,125,0.12); color: var(--muted); border: 1px solid var(--border2); }
+
+.ticket-body {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.ticket-field-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 0.4rem;
+}
+
+.ticket-field-value {
+  font-size: 13.5px;
+  color: #c0bbb3;
+  line-height: 1.7;
+}
+
+.criteria-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.criteria-list li {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  font-size: 13.5px;
+  color: #c0bbb3;
+  line-height: 1.6;
+}
+.criteria-list li::before {
+  content: '▸';
+  color: var(--lime);
+  font-size: 10px;
+  min-width: 12px;
+  padding-top: 4px;
+  flex-shrink: 0;
+}
+
+/* ── CODE BLOCK ── */
+.code-block {
+  background: #0a120b;
+  border: 1px solid var(--border2);
+  padding: 1.25rem 1.5rem;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.8;
+  color: #9eb89f;
+  overflow-x: auto;
+  margin: 1.25rem 0;
+  white-space: pre;
+}
+.code-block .kw  { color: var(--lime); }
+.code-block .mt  { color: var(--warn); }
+.code-block .cm  { color: var(--dim); font-style: italic; }
+.code-block .pt  { color: #8bbf8d; }
+.code-block .rt  { color: var(--danger); opacity: 0.8; }
+
+code {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: rgba(200,241,53,0.08);
+  color: var(--lime);
+  padding: 1px 7px;
+  border: 1px solid rgba(200,241,53,0.15);
+}
+
+/* ── SCORE TABLE ── */
+.score-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.25rem;
+  font-size: 13.5px;
+}
+
+.score-table th {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--dim);
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border2);
+  background: var(--surface);
+}
+
+.score-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  color: #c0bbb3;
+  vertical-align: top;
+  line-height: 1.6;
+}
+
+.score-table tr:last-child td { border-bottom: none; }
+.score-table tr:hover td { background: var(--surface); }
+
+.score-table td:first-child { color: var(--text); font-weight: 600; font-size: 13px; }
+.score-table td:nth-child(2) {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--lime);
+  white-space: nowrap;
+}
+
+/* ── TIMELINE ── */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 1.5rem;
+  border-left: 2px solid var(--border2);
+  padding-left: 0;
+}
+
+.tl-item {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1rem 0 1rem 2rem;
+  position: relative;
+  border-bottom: 1px solid var(--border);
+}
+.tl-item:last-child { border-bottom: none; }
+
+.tl-dot {
+  position: absolute;
+  left: -7px;
+  top: 1.35rem;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--bg2);
+  border: 2px solid var(--border2);
+  flex-shrink: 0;
+}
+.tl-dot.active {
+  background: var(--lime);
+  border-color: var(--lime);
+  box-shadow: 0 0 0 4px rgba(200,241,53,0.15);
+}
+
+.tl-day {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--lime);
+  min-width: 80px;
+  padding-top: 2px;
+  letter-spacing: 0.05em;
+}
+
+.tl-content h4 {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 0.2rem;
+}
+.tl-content p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ── CALLOUT ── */
+.callout {
+  border-left: 3px solid var(--lime);
+  background: var(--lime-dim);
+  padding: 1.1rem 1.5rem;
+  margin: 1.5rem 0;
+  font-size: 13.5px;
+  color: #c8c4bc;
+  line-height: 1.75;
+}
+.callout strong { color: var(--lime); }
+
+.callout-warn {
+  border-left-color: var(--warn);
+  background: rgba(245,197,24,0.06);
+}
+.callout-warn strong { color: var(--warn); }
+
+/* ── DONT LIST ── */
+.dont-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.dont-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 13.5px;
+  color: #c0bbb3;
+  padding: 0.6rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.dont-list li::before {
+  content: '✕';
+  color: var(--danger);
+  font-size: 11px;
+  font-weight: 700;
+  padding-top: 2px;
+  flex-shrink: 0;
+}
+
+/* ── BONUS LIST ── */
+.bonus-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.bonus-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 13.5px;
+  color: #c0bbb3;
+  padding: 0.6rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.bonus-list li::before {
+  content: '★';
+  color: var(--warn);
+  font-size: 11px;
+  font-weight: 700;
+  padding-top: 2px;
+  flex-shrink: 0;
+}
+.bonus-list li strong { color: var(--text); }
+
+/* ── SUBMIT BOX ── */
+.submit-box {
+  border: 1px solid var(--lime);
+  background: var(--lime-dim);
+  padding: 2rem 2.25rem;
+  margin-top: 2rem;
+}
+
+.submit-box h3 {
+  font-family: var(--sans);
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: -0.01em;
+  color: var(--lime);
+  margin-bottom: 1rem;
+}
+
+.submit-steps {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-bottom: 1.5rem;
+}
+.submit-steps li {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  font-size: 13.5px;
+  color: #c8c4bc;
+}
+.submit-steps li .step-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--lime);
+  background: var(--lime-mid);
+  border: 1px solid rgba(200,241,53,0.25);
+  padding: 1px 8px;
+  min-width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.submit-email {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--lime);
+  background: rgba(200,241,53,0.06);
+  border: 1px solid rgba(200,241,53,0.2);
+  padding: 0.75rem 1.25rem;
+  display: inline-block;
+  margin-top: 0.5rem;
+  letter-spacing: 0.02em;
+}
+
+/* ── AI SECTION SPECIAL ── */
+.ai-section {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  padding: 1.75rem 2rem;
+  margin-top: 1.5rem;
+}
+
+.ai-section h3 {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--lime);
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+.ai-q-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+.ai-q-list li {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  font-size: 13.5px;
+  color: #c0bbb3;
+  line-height: 1.65;
+}
+.ai-q-list li .q-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  min-width: 20px;
+  padding-top: 3px;
+}
+
+/* ── STICKY NAV (minimal) ── */
+#sticky-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(12,26,14,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transform: translateY(-100%);
+  transition: transform 0.3s ease;
+}
+#sticky-nav.visible { transform: translateY(0); }
+
+.nav-brand {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--lime);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.nav-links {
+  display: flex;
+  gap: 1.5rem;
+}
+.nav-links a {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.nav-links a:hover { color: var(--lime); }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 2rem;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+  letter-spacing: 0.05em;
+}
+
+/* ── MOBILE ── */
+@media (max-width: 640px) {
+  .hero h1 { font-size: 2rem; }
+  .feature-grid { grid-template-columns: 1fr; }
+  .hero-meta { flex-direction: column; gap: 0.5rem; }
+  .nav-links { display: none; }
+  .page-wrap { padding: 0 1.25rem 6rem; }
+  .ticket-header { flex-direction: column; }
+  .score-table td:nth-child(3) { display: none; }
+  .tl-day { min-width: 60px; font-size: 10px; }
+}
+
+/* reveal animation */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.reveal.in { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<!-- Sticky nav -->
+<nav id="sticky-nav">
+  <span class="nav-brand">Ottermap × TerraSync — Round 2</span>
+  <div class="nav-links">
+    <a href="#brief">Brief</a>
+    <a href="#tickets">Tickets</a>
+    <a href="#stack">Stack</a>
+    <a href="#scoring">Scoring</a>
+    <a href="#timeline">Timeline</a>
+    <a href="#submit">Submit</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <svg class="mow-canvas" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <!-- Horizontal mowing stripes -->
+    <line class="mow-stripe" x1="0" y1="60"  x2="1440" y2="60"/>
+    <line class="mow-stripe" x1="0" y1="110" x2="1440" y2="110"/>
+    <line class="mow-stripe" x1="0" y1="160" x2="1440" y2="160"/>
+    <line class="mow-stripe" x1="0" y1="210" x2="1440" y2="210"/>
+    <line class="mow-stripe" x1="0" y1="260" x2="1440" y2="260"/>
+    <line class="mow-stripe" x1="0" y1="310" x2="1440" y2="310"/>
+    <line class="mow-stripe" x1="0" y1="360" x2="1440" y2="360"/>
+    <line class="mow-stripe" x1="0" y1="410" x2="1440" y2="410"/>
+    <line class="mow-stripe" x1="0" y1="460" x2="1440" y2="460"/>
+    <line class="mow-stripe" x1="0" y1="510" x2="1440" y2="510"/>
+    <line class="mow-stripe" x1="0" y1="560" x2="1440" y2="560"/>
+    <line class="mow-stripe" x1="0" y1="610" x2="1440" y2="610"/>
+    <line class="mow-stripe" x1="0" y1="660" x2="1440" y2="660"/>
+    <line class="mow-stripe" x1="0" y1="710" x2="1440" y2="710"/>
+    <line class="mow-stripe" x1="0" y1="760" x2="1440" y2="760"/>
+    <line class="mow-stripe" x1="0" y1="810" x2="1440" y2="810"/>
+    <line class="mow-stripe" x1="0" y1="860" x2="1440" y2="860"/>
+    <!-- Vertical turn markers -->
+    <line class="mow-stripe" x1="60"   y1="0" x2="60"   y2="900" stroke-width="0.4" opacity="0.4"/>
+    <line class="mow-stripe" x1="1380" y1="0" x2="1380" y2="900" stroke-width="0.4" opacity="0.4"/>
+  </svg>
+
+  <div class="hero-inner">
+    <div class="eyebrow">Ottermap × TerraSync · Internship · Round 2</div>
+    <h1>Build the<br><em>Velocity Zone Manager</em></h1>
+    <p class="hero-sub">A full-stack technical task set in the real world of robotic mower fleet management. You're not building a demo — you're building the kind of thing that ships on Day 1.</p>
+    <div class="hero-meta">
+      <span class="meta-chip"><strong>72 hrs</strong> to submit</span>
+      <span class="meta-chip"><strong>6–10 hrs</strong> expected effort</span>
+      <span class="meta-chip"><strong>React + Flask + PostgreSQL</strong></span>
+      <span class="meta-chip"><strong>Docker Compose required</strong></span>
+      <span class="meta-chip"><strong>AI workflow — mandatory section</strong></span>
+    </div>
+  </div>
+</section>
+
+<!-- Main content -->
+<div class="page-wrap">
+
+  <!-- Brief -->
+  <section class="section reveal" id="brief">
+    <div class="section-label">The brief</div>
+    <h2>What you're building — and why it exists</h2>
+    <p>TerraSync's Velocity platform manages fleets of electric robotic mowers across commercial turf properties — golf courses, airports, corporate campuses. Mowers are assigned to <strong>zones</strong>: named areas defined by GeoJSON polygons drawn on a map. Operators create and manage zones through a web dashboard, assign mower counts, and monitor coverage.</p>
+    <p>Your task is to build a simplified but real-feeling version of the <strong>Zone Manager</strong> — a core surface in Velocity. The patterns, API design, and database decisions you make here are exactly the kind of thing you'd ship on week one.</p>
+
+    <div class="feature-grid">
+      <div class="feature-block">
+        <h3>Properties</h3>
+        <ul>
+          <li>Create a Property (e.g. "Bengaluru Golf Club")</li>
+          <li>Name, type, total acreage, notes</li>
+          <li>Types: Golf Course / Airport / Corporate Campus / Other</li>
+          <li>List view with search by name or type</li>
+        </ul>
+      </div>
+      <div class="feature-block">
+        <h3>Zones</h3>
+        <ul>
+          <li>Draw zones as polygons on an OpenLayers map</li>
+          <li>Zone types: Fairway / Rough / Perimeter / Exclusion</li>
+          <li>Assigned mower count per zone</li>
+          <li>Status: Active / Inactive</li>
+          <li>Edit boundaries directly on the map</li>
+        </ul>
+      </div>
+      <div class="feature-block">
+        <h3>GeoJSON workflow</h3>
+        <ul>
+          <li>Upload a GeoJSON file to pre-populate zones</li>
+          <li>Save edits back to the database</li>
+          <li>Download current zones as GeoJSON</li>
+          <li>Zoom to extent on load</li>
+        </ul>
+      </div>
+      <div class="feature-block">
+        <h3>Zone summary panel</h3>
+        <ul>
+          <li>Sidebar listing all zones for the selected property</li>
+          <li>Acreage auto-calculated from polygon geometry</li>
+          <li>Understaffed flag: &lt;1 mower per 2 acres</li>
+          <li>Total mower count across property</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tickets -->
+  <section class="section reveal" id="tickets">
+    <div class="section-label">Linear tickets</div>
+    <h2>Two tickets. 72 hours. Ship both.</h2>
+    <p>These are structured like real Linear tickets from the Velocity backlog. Read the acceptance criteria carefully — they define exactly what done looks like.</p>
+
+    <!-- Ticket 1 -->
+    <div class="ticket" style="margin-top:1.5rem;">
+      <div class="ticket-header">
+        <div class="ticket-id-wrap">
+          <span class="ticket-id">TER-S01 · Foundation</span>
+          <span class="ticket-title">Build the Zone Manager — core CRUD, map, and GeoJSON workflow</span>
+        </div>
+        <div class="ticket-badges">
+          <span class="badge badge-high">High Priority</span>
+          <span class="badge badge-fs">Full-Stack</span>
+          <span class="badge badge-pt">5pt</span>
+        </div>
+      </div>
+      <div class="ticket-body">
+        <div>
+          <div class="ticket-field-label">Description</div>
+          <div class="ticket-field-value">Implement the core Zone Manager: authentication, Property CRUD, Zone CRUD with an OpenLayers map, and the full GeoJSON upload / edit / download workflow. This is the foundation everything else depends on.</div>
+        </div>
+        <div>
+          <div class="ticket-field-label">Acceptance criteria</div>
+          <ul class="criteria-list">
+            <li>User can sign up, log in, and log out. JWT tokens stored client-side. Protected routes redirect unauthenticated users.</li>
+            <li>User can create, view, edit, and delete Properties. Each has name, type (enum), total acreage, notes.</li>
+            <li>User can draw polygon zones on an OpenLayers map and assign a name, zone type, mower count, and status.</li>
+            <li>User can upload a GeoJSON FeatureCollection — polygons are rendered as zones on the map and persisted.</li>
+            <li>User can edit zone boundaries on the map and save changes. Changes persist across page reloads.</li>
+            <li>User can download the current zones for a property as a valid GeoJSON FeatureCollection.</li>
+            <li>Map zooms to the GeoJSON extent on load. If no zones exist, shows a default view centred on India.</li>
+            <li>Sidebar shows all zones for the selected property with auto-calculated acreage and the understaffed flag.</li>
+            <li>The entire application runs with <code>docker compose up --build</code> from a clean directory.</li>
+            <li>A seed script or SQL file creates one demo property with 3 pre-drawn zones on first boot.</li>
+          </ul>
+        </div>
+        <div>
+          <div class="ticket-field-label">Notes</div>
+          <div class="ticket-field-value">Use OpenLayers only — no Leaflet, no Mapbox, no Google Maps. For GeoJSON samples, use <a href="https://geojson.io" target="_blank" style="color:var(--lime)">geojson.io</a>. Geometry may be stored as PostGIS <code>geometry</code> or JSONB — justify your choice in the README.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ticket 2 -->
+    <div class="ticket">
+      <div class="ticket-header">
+        <div class="ticket-id-wrap">
+          <span class="ticket-id">TER-S02 · Business logic</span>
+          <span class="ticket-title">Mower coverage validator — flag understaffed zones and block invalid assignments</span>
+        </div>
+        <div class="ticket-badges">
+          <span class="badge badge-high">High Priority</span>
+          <span class="badge badge-be">Backend-heavy</span>
+          <span class="badge badge-pt">3pt</span>
+        </div>
+      </div>
+      <div class="ticket-body">
+        <div>
+          <div class="ticket-field-label">Description</div>
+          <div class="ticket-field-value">Operators sometimes assign zero mowers to a zone or set a mower count that can't reasonably cover the acreage. The system currently accepts these silently. Add server-side validation and surface the result in the UI.</div>
+        </div>
+        <div>
+          <div class="ticket-field-label">Acceptance criteria</div>
+          <ul class="criteria-list">
+            <li>Backend: creating or updating a zone with <code>mower_count = 0</code> returns a <code>400</code> with a human-readable error: <em>"A zone must have at least one assigned mower."</em></li>
+            <li>Backend: a zone is flagged as <code>understaffed: true</code> in the API response when its acreage exceeds <code>mower_count × 2</code> acres. This flag is computed, not stored.</li>
+            <li>Frontend: the zone form surfaces the backend error message inline — no silent failures, no generic "Something went wrong".</li>
+            <li>Frontend: understaffed zones are visually distinct in both the sidebar list and on the map (different fill colour or a warning icon — your choice).</li>
+            <li>A <code>GET /properties/:id/zones/summary</code> endpoint returns: total zones, total acreage, total mowers assigned, count of understaffed zones. Used by the sidebar header.</li>
+            <li>The validation logic must not be duplicated between the create and update endpoints — share it via a helper or service function.</li>
+          </ul>
+        </div>
+        <div>
+          <div class="ticket-field-label">Notes</div>
+          <div class="ticket-field-value">Don't build a separate "validator" service. Keep it in the Flask app. The acreage calculation must use the actual polygon geometry — not the manually entered <code>total_acreage</code> field on the Property.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stack & APIs -->
+  <section class="section reveal" id="stack">
+    <div class="section-label">Technical requirements</div>
+    <h2>Stack, APIs, and repo structure</h2>
+
+    <p>These are not suggestions. Deviations on the required items will affect your score.</p>
+
+    <div class="feature-grid" style="margin-top:1.25rem;">
+      <div class="feature-block">
+        <h3>Frontend — required</h3>
+        <ul>
+          <li>React 18+ with TypeScript (strict mode)</li>
+          <li>OpenLayers for all map rendering</li>
+          <li>Tailwind CSS for styling</li>
+          <li>Axios or native fetch for API calls</li>
+          <li>No UI component libraries for the map</li>
+        </ul>
+      </div>
+      <div class="feature-block">
+        <h3>Backend — required</h3>
+        <ul>
+          <li>Python Flask REST API</li>
+          <li>PostgreSQL — not SQLite</li>
+          <li>Flask-SQLAlchemy or raw psycopg2</li>
+          <li>JWT authentication</li>
+          <li>GeoJSON as PostGIS geometry or JSONB</li>
+        </ul>
+      </div>
+      <div class="feature-block">
+        <h3>Infrastructure — required</h3>
+        <ul>
+          <li>Docker Compose: 3 services (frontend, backend, postgres)</li>
+          <li>Runs with <code>docker compose up --build</code></li>
+          <li>Seed data on first boot</li>
+          <li>README with honest setup instructions</li>
+        </ul>
+      </div>
+      <div class="feature-block">
+        <h3>Repo structure — required</h3>
+        <ul>
+          <li><code>/frontend</code></li>
+          <li><code>/backend</code></li>
+          <li><code>docker-compose.yml</code></li>
+          <li><code>README.md</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:2.5rem;">API contract</div>
+    <p>Minimum required endpoints. Additional endpoints are fine — don't remove any of these.</p>
+
+<div class="code-block"><span class="cm"># Auth</span>
+<span class="kw">POST</span>   <span class="pt">/auth/signup</span>
+<span class="kw">POST</span>   <span class="pt">/auth/login</span>
+
+<span class="cm"># Properties</span>
+<span class="kw">GET</span>    <span class="pt">/properties</span>
+<span class="kw">POST</span>   <span class="pt">/properties</span>
+<span class="kw">GET</span>    <span class="pt">/properties/:id</span>
+<span class="kw">PUT</span>    <span class="pt">/properties/:id</span>
+<span class="kw">DELETE</span> <span class="pt">/properties/:id</span>
+
+<span class="cm"># Zones</span>
+<span class="kw">GET</span>    <span class="pt">/properties/:id/zones</span>
+<span class="kw">POST</span>   <span class="pt">/properties/:id/zones</span>
+<span class="kw">PUT</span>    <span class="pt">/properties/:id/zones/:zone_id</span>
+<span class="kw">DELETE</span> <span class="pt">/properties/:id/zones/:zone_id</span>
+<span class="kw">GET</span>    <span class="pt">/properties/:id/zones/summary</span>     <span class="cm">→ TER-S02</span>
+<span class="kw">GET</span>    <span class="pt">/properties/:id/zones/export</span>       <span class="cm">→ GeoJSON FeatureCollection</span>
+<span class="kw">POST</span>   <span class="pt">/properties/:id/zones/import</span>       <span class="cm">→ accepts GeoJSON FeatureCollection</span></div>
+  </section>
+
+  <!-- AI workflow -->
+  <section class="section reveal">
+    <div class="section-label">Mandatory — not optional</div>
+    <h2>The AI Workflow section in your README</h2>
+    <p>Your README must include a section titled <code>## AI Workflow</code>. This is evaluated — not a formality.</p>
+
+    <div class="ai-section">
+      <h3>Answer all four of these, specifically:</h3>
+      <ul class="ai-q-list">
+        <li>
+          <span class="q-num">Q1</span>
+          Which AI tool(s) did you use, and what specifically did you use each one for? (Not "I used Claude to help write code" — what did you use it for, exactly?)
+        </li>
+        <li>
+          <span class="q-num">Q2</span>
+          Give one concrete example of AI output you accepted with no changes. Paste the prompt you gave and the output you used.
+        </li>
+        <li>
+          <span class="q-num">Q3</span>
+          Give one concrete example of AI output you rejected or significantly edited. What was wrong with it? What did you change?
+        </li>
+        <li>
+          <span class="q-num">Q4</span>
+          Name one part of this task where AI was not useful and you did it yourself. Why wasn't AI the right tool there?
+        </li>
+      </ul>
+    </div>
+
+    <div class="callout callout-warn" style="margin-top:1.25rem;">
+      <strong>Scoring note:</strong> A vague AI Workflow section ("I used Claude to speed up development") scores the same as no section at all — zero. A candidate who cannot articulate when they over-rode AI output is not the profile we're hiring for. This section is 10% of your total score and is a hard filter regardless of how good the code is.
+    </div>
+  </section>
+
+  <!-- Don'ts -->
+  <section class="section reveal">
+    <div class="section-label">Hard constraints</div>
+    <h2>What not to do</h2>
+
+    <ul class="dont-list">
+      <li>Use Leaflet, Mapbox, Google Maps, or any mapping library other than OpenLayers</li>
+      <li>Use SQLite — PostgreSQL is required for this task</li>
+      <li>Use a pre-built map component that abstracts OpenLayers away from you</li>
+      <li>Submit without running <code>docker compose up --build</code> from a clean directory and verifying it works end to end</li>
+      <li>Submit a README that says "works on my machine" without a working Docker setup</li>
+      <li>Spend time on animations, dark mode, or visual polish — we evaluate engineering, not aesthetics</li>
+      <li>Leave the AI Workflow section vague or empty</li>
+    </ul>
+  </section>
+
+  <!-- Bonus -->
+  <section class="section reveal">
+    <div class="section-label">Genuine differentiators</div>
+    <h2>Bonus — only if the core is solid</h2>
+    <p>Don't attempt these if TER-S01 and TER-S02 aren't fully working. A complete core beats a flashy bonus every time.</p>
+
+    <ul class="bonus-list">
+      <li><strong>Mowing path simulation:</strong> given a zone polygon, render a back-and-forth stripe pattern as a LineString overlay on the map. No physics — just a visual approximation that a mower would realistically follow.</li>
+      <li><strong>Zone conflict detection:</strong> highlight zones that overlap on the map. Use PostGIS <code>ST_Intersects</code> on the backend or compute it on the frontend — either approach is valid, justify your choice.</li>
+      <li><strong>Property search + filter</strong> by type and/or acreage range on the property list view.</li>
+      <li><strong>GeoJSON validation</strong> on upload — reject files that aren't valid FeatureCollections or contain non-polygon geometry. Return a descriptive error.</li>
+      <li><strong>Unit tests</strong> for at least 2 Flask endpoints using pytest. Tests must pass inside Docker.</li>
+    </ul>
+  </section>
+
+  <!-- Scoring -->
+  <section class="section reveal" id="scoring">
+    <div class="section-label">Evaluation</div>
+    <h2>How your submission is scored</h2>
+    <p>Total: 100 points. Pass threshold: 65 points, with AI Workflow never scoring zero.</p>
+
+    <table class="score-table">
+      <thead>
+        <tr>
+          <th>Area</th>
+          <th>Weight</th>
+          <th>What we look for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Map + GeoJSON workflow</td>
+          <td>25%</td>
+          <td>Draw, edit, save, reload polygons correctly. GeoJSON round-trips cleanly. Zoom-to-extent works. Import and export both function.</td>
+        </tr>
+        <tr>
+          <td>API design</td>
+          <td>20%</td>
+          <td>RESTful, consistent error shapes, correct HTTP status codes, auth middleware applied correctly, validation in TER-S02 works as specified.</td>
+        </tr>
+        <tr>
+          <td>Database design</td>
+          <td>15%</td>
+          <td>Schema makes sense for the domain. Geometry stored correctly (PostGIS or JSONB — justified in README). No obvious N+1 patterns.</td>
+        </tr>
+        <tr>
+          <td>Code quality</td>
+          <td>15%</td>
+          <td>TypeScript types used meaningfully (not <code>any</code> everywhere). Flask routes are clean. Business logic separated from route handlers.</td>
+        </tr>
+        <tr>
+          <td>Docker + setup</td>
+          <td>15%</td>
+          <td><code>docker compose up --build</code> works first try from a clean directory. README is honest. Seed data is present.</td>
+        </tr>
+        <tr>
+          <td>AI workflow documentation</td>
+          <td>10%</td>
+          <td>All four questions answered specifically. Evidence of judgment — not just "I used AI." One example of AI rejection is documented.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout" style="margin-top:1.25rem;">
+      <strong>Shortlist criteria:</strong> We target 10–20 candidates from this round. Candidates who score 65+ with a specific AI Workflow section proceed to Round 3. Any submission where <code>docker compose up --build</code> fails is automatically disqualified — we won't debug your setup.
+    </div>
+  </section>
+
+  <!-- Timeline -->
+  <section class="section reveal" id="timeline">
+    <div class="section-label">Schedule</div>
+    <h2>72-hour window — no extensions</h2>
+
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot active"></div>
+        <div class="tl-day">Day 0<br>Monday AM</div>
+        <div class="tl-content">
+          <h4>Task sent</h4>
+          <p>You receive this link. The 72-hour window opens. Read everything before you write a line of code.</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-day">Day 1<br>~6–8 hrs in</div>
+        <div class="tl-content">
+          <h4>Recommended checkpoint</h4>
+          <p>Docker Compose running, auth working, at least one Property endpoint live. If you're not here by end of Day 1, re-scope.</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-day">Day 2<br>~8–10 hrs in</div>
+        <div class="tl-content">
+          <h4>Core complete</h4>
+          <p>TER-S01 and TER-S02 both working. Map draws, saves, exports. Understaffed flag visible. Now decide if you tackle any bonus items.</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-day">Day 3<br>Wednesday 11:59 PM IST</div>
+        <div class="tl-content">
+          <h4>Submission deadline</h4>
+          <p>Hard deadline. Run <code>docker compose up --build</code> one final time from a clean directory. Write your AI Workflow section. Submit the GitHub link.</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-day">Day 5<br>Friday EOD</div>
+        <div class="tl-content">
+          <h4>Results communicated</h4>
+          <p>Shortlisted candidates hear from Ottermap by Friday evening. Shortlist target: 10–20 candidates from the 40 submissions.</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-day">Following Monday</div>
+        <div class="tl-content">
+          <h4>Round 3 begins</h4>
+          <p>Communication screen — 15-minute async voice note. Shortlisted candidates receive instructions separately.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Submit -->
+  <section class="section reveal" id="submit">
+    <div class="section-label">How to submit</div>
+    <h2>Submission checklist</h2>
+
+    <div class="submit-box">
+      <h3>Before you send anything, verify:</h3>
+      <ul class="submit-steps">
+        <li><span class="step-num">1</span>Run <code>docker compose up --build</code> from a completely clean directory (no local node_modules, no .env pre-loaded). It must work.</li>
+        <li><span class="step-num">2</span>Confirm the seed data creates the demo property with 3 zones on first boot.</li>
+        <li><span class="step-num">3</span>Test the GeoJSON upload → edit → download round-trip manually.</li>
+        <li><span class="step-num">4</span>Confirm TER-S02 validation: try submitting a zone with 0 mowers — the error must appear inline.</li>
+        <li><span class="step-num">5</span>Write your <code>## AI Workflow</code> section in the README — all four questions answered specifically.</li>
+        <li><span class="step-num">6</span>Make the GitHub repo public OR add <code>@ottermap-hiring</code> as a collaborator.</li>
+        <li><span class="step-num">7</span>Email the link to hiring@ottermap.com with subject line exactly as shown below.</li>
+      </ul>
+
+      <div class="ticket-field-label" style="margin-top:0.5rem;">Email subject line</div>
+      <div class="submit-email">[Velocity Round 2] Your Full Name — TER-S01 + TER-S02</div>
+    </div>
+
+    <div class="callout callout-warn" style="margin-top:1.5rem;">
+      <strong>No extensions will be granted.</strong> If you're facing a genuine technical blocker you cannot resolve, email hiring@ottermap.com before the deadline — don't wait until after. Partial submissions that explain what's missing and why are evaluated more generously than silent no-shows.
+    </div>
+  </section>
+
+</div><!-- end page-wrap -->
+
+<footer>
+  Ottermap × TerraSync · AI-Augmented Builder Internship · Batch 2026 · Round 2 of 5
+</footer>
+
+<script>
+// Sticky nav on scroll
+const nav = document.getElementById('sticky-nav');
+const heroHeight = document.querySelector('.hero').offsetHeight;
+window.addEventListener('scroll', () => {
+  if (window.scrollY > heroHeight * 0.6) {
+    nav.classList.add('visible');
+  } else {
+    nav.classList.remove('visible');
+  }
+}, { passive: true });
+
+// Intersection observer for reveals
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('in');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
