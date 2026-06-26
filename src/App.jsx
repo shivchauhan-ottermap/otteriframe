@@ -11,7 +11,7 @@ export default function App() {
         {/* <Route path="/" element={<OttermapPage />} /> */}
         {/* <Route path="/ottermap" element={<OttermapPage />} /> */}
         <Route path="/" element={<TrraPage />} />
-        {/* <Route path="/admin" element={<AdminPage />} /> */}
+        <Route path="/admin" element={<AdminPage />} />
 
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

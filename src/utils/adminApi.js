@@ -46,6 +46,21 @@ export async function fetchSubmissions() {
   return data ?? [];
 }
 
+export async function fetchTrraSubmissions() {
+  const { data, error } = await supabase
+    .from("trra_submissions")
+    .select("*")
+    .order("started_at", { ascending: false });
+
+  if (error) throw error;
+
+  return (data ?? []).map((row) => ({
+    ...row,
+    answers:
+      typeof row.answers === "object" && row.answers !== null ? row.answers : {},
+  }));
+}
+
 export async function verifyAdminSession(session) {
   if (!session?.user?.email) return false;
 
