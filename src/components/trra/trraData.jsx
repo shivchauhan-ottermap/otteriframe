@@ -293,5 +293,5 @@ export const SUBMIT_STEPS = [
   <>
     Make the GitHub repo public OR add <code>@ottermap-hiring</code> as a collaborator.
   </>,
-  "Email the link to hiring@ottermap.com with subject line exactly as shown below.",
+  "Email the link to hr@ottermap.com with subject line exactly as shown below.",
 ];

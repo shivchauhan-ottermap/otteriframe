@@ -72,7 +72,7 @@ export default function SubmitSection({
 
       <div className="trra-callout trra-callout-warn trra-callout-spaced-lg">
         <strong>No extensions will be granted.</strong> If you're facing a genuine technical blocker you cannot
-        resolve, email hiring@ottermap.com before the deadline — don't wait until after. Partial submissions that
+        resolve, email hr@ottermap.com before the deadline — don't wait until after. Partial submissions that
         explain what's missing and why are evaluated more generously than silent no-shows.
       </div>
     </RevealSection>

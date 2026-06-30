@@ -8,7 +8,7 @@ export default function TrraExpiredOverlay() {
         <br />
         <br />
         If you believe this is an error, contact{" "}
-        <strong>hiring@ottermap.com</strong>
+        <strong>hr@ottermap.com</strong>
       </p>
     </div>
   );

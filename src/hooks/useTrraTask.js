@@ -278,7 +278,7 @@ export function useTrraTask() {
       );
 
       setTimeout(() => {
-        window.location.href = `mailto:hiring@ottermap.com?subject=${subject}&body=${body}`;
+        window.location.href = `mailto:hr@ottermap.com?subject=${subject}&body=${body}`;
       }, 1200);
     } catch (err) {
       if ((err.message || "").includes("72-hour") || (err.message || "").includes("ended")) {
