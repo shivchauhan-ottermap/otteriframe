@@ -87,7 +87,9 @@ export default function LandingScreen({
 
       <div className="jnr-fields">
         <div className="jnr-field">
-          <label htmlFor="jnr-candidate-name">Your full name</label>
+          <label htmlFor="jnr-candidate-name">
+            <strong>Name</strong>
+          </label>
           <input
             type="text"
             id="jnr-candidate-name"
@@ -100,7 +102,12 @@ export default function LandingScreen({
         </div>
 
         <div className="jnr-field">
-          <label htmlFor="jnr-candidate-email">Email address</label>
+          <label htmlFor="jnr-candidate-email">
+            <strong>Email</strong>{" "}
+            <span className="jnr-field-hint-inline">
+              (Please provide a valid email address. This will be used for further communication.)
+            </span>
+          </label>
           <input
             type="email"
             id="jnr-candidate-email"
@@ -114,7 +121,12 @@ export default function LandingScreen({
         </div>
 
         <div className="jnr-field">
-          <label htmlFor="jnr-candidate-phone">Phone number</label>
+          <label htmlFor="jnr-candidate-phone">
+            <strong>Phone number</strong>{" "}
+            <span className="jnr-field-hint-inline">
+              (Please provide a valid phone number. This will be used for further communication.)
+            </span>
+          </label>
           <input
             type="tel"
             id="jnr-candidate-phone"

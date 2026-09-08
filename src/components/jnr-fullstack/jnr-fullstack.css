@@ -203,6 +203,19 @@ body.jnr-fullstack-active::before {
   text-align: left;
 }
 
+.jnr-field label strong {
+  font-weight: 700;
+  color: var(--jnr-text);
+}
+
+.jnr-field-hint-inline {
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--jnr-muted);
+  font-size: 12px;
+}
+
 .jnr-field-error {
   font-size: 11px;
   color: var(--jnr-danger);
