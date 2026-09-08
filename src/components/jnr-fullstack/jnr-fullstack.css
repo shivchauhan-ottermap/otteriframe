@@ -700,12 +700,24 @@ body.jnr-fullstack-active::before {
   resize: vertical;
   min-height: 140px;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
   display: block;
 }
 
 .jnr-page textarea:focus {
   border-color: var(--jnr-accent);
+  background: var(--jnr-accent-dim);
+  box-shadow:
+    0 0 0 3px var(--jnr-accent-mid),
+    0 0 20px rgba(59, 130, 246, 0.15);
+}
+
+.jnr-page textarea.jnr-code-area:focus {
+  background: #0a1220;
+  border-color: var(--jnr-accent);
+  box-shadow:
+    0 0 0 3px var(--jnr-accent-mid),
+    0 0 20px rgba(59, 130, 246, 0.15);
 }
 
 .jnr-page textarea::placeholder {
