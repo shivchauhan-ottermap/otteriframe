@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { fetchSubmissions, fetchTrraSubmissions } from "../../utils/adminApi";
+import { fetchSubmissions, fetchTrraSubmissions, fetchJrFullstackSubmissions } from "../../utils/adminApi";
 
 const TABS = [
   // { key: "ottermap", label: "72-Hour Challenge" },
-  { key: "trra", label: "Round 2 TRRA" },
+  // { key: "trra", label: "Round 2 TRRA" },
+  { key: "jr-fullstack", label: "Jr Full Stack" },
 ];
 
 function StatusBadge({ status }) {
@@ -215,6 +216,74 @@ function TrraSubmissionRow({ row, isOpen, onToggle }) {
   );
 }
 
+function JrFullstackSubmissionRow({ row, isOpen, onToggle }) {
+  const answers = row.answers ?? {};
+  const parts = [
+    { key: "a", label: "Part A — Clarifying Questions" },
+    { key: "b", label: "Part B — Implementation Plan" },
+    { key: "c1", label: "Part C.1 — Filter Type Definition" },
+    { key: "c2", label: "Part C.2 — useSearchParams Hook Usage" },
+    { key: "c3", label: "Part C.3 — Reset Button" },
+    { key: "d1", label: "Part D.1 — Edge Case" },
+    { key: "d2", label: "Part D.2 — Out of Scope" },
+    { key: "e", label: "Part E — Async PR Update" },
+  ];
+
+  return (
+    <div className="border border-border bg-surface">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full text-left px-4 sm:px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 hover:bg-surface2/50 transition-colors"
+      >
+        <div className="flex-1 min-w-0">
+          <div className="font-sans font-bold text-text truncate">{row.name}</div>
+          <div className="text-[12px] text-muted truncate">
+            {row.email} · {row.phone}
+          </div>
+          <div className="text-[11px] text-accent font-mono mt-1">{row.submission_id}</div>
+        </div>
+        <div className="flex items-center gap-3 shrink-0 flex-wrap">
+          <StatusBadge status={row.status} />
+          <span className="text-[11px] text-muted hidden sm:inline">
+            {formatDate(row.submitted_at || row.started_at)}
+          </span>
+          <span className="text-muted text-sm">{isOpen ? "▲" : "▼"}</span>
+        </div>
+      </button>
+
+      {isOpen && (
+        <div className="px-4 sm:px-5 pb-5 pt-1 border-t border-border">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5 text-[12px] text-muted">
+            <div>
+              <span className="text-text font-semibold">Started:</span> {formatDate(row.started_at)}
+            </div>
+            <div>
+              <span className="text-text font-semibold">Deadline:</span> {formatDate(row.deadline_at)}
+            </div>
+            <div>
+              <span className="text-text font-semibold">Submitted:</span> {formatDate(row.submitted_at)}
+            </div>
+            <div>
+              <span className="text-text font-semibold">Time used:</span> {row.time_used || "—"}
+            </div>
+            <div>
+              <span className="text-text font-semibold">Email:</span> {row.email || "—"}
+            </div>
+            <div>
+              <span className="text-text font-semibold">Phone:</span> {row.phone || "—"}
+            </div>
+          </div>
+
+          {parts.map(({ key, label }) => (
+            <NotesBlock key={key} label={label} value={answers[key]} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function useSubmissionList(fetcher) {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -242,14 +311,16 @@ function countByStatus(submissions) {
 }
 
 export default function AdminDashboard({ onLogout, adminEmail }) {
-  const [activeTab, setActiveTab] = useState("trra");
+  const [activeTab, setActiveTab] = useState("jr-fullstack");
   const [filter, setFilter] = useState("all");
   const [expandedId, setExpandedId] = useState(null);
 
   const ottermap = useSubmissionList(fetchSubmissions);
   const trra = useSubmissionList(fetchTrraSubmissions);
+  const jrFullstack = useSubmissionList(fetchJrFullstackSubmissions);
 
-  const current = activeTab === "trra" ? trra : ottermap;
+  const current =
+    activeTab === "trra" ? trra : activeTab === "jr-fullstack" ? jrFullstack : ottermap;
   const filtered = current.submissions.filter((s) => filter === "all" || s.status === filter);
   const counts = countByStatus(current.submissions);
 
@@ -315,6 +386,12 @@ export default function AdminDashboard({ onLogout, adminEmail }) {
             if (activeTab === "trra") {
               return (
                 <TrraSubmissionRow key={row.id} row={row} isOpen={isOpen} onToggle={onToggle} />
+              );
+            }
+
+            if (activeTab === "jr-fullstack") {
+              return (
+                <JrFullstackSubmissionRow key={row.id} row={row} isOpen={isOpen} onToggle={onToggle} />
               );
             }
 

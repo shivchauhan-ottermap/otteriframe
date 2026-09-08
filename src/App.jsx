@@ -3,6 +3,7 @@ import QualifierPage from "./pages/QualifierPage";
 import AdminPage from "./pages/AdminPage";
 import OttermapPage from "./pages/OttermapPage";
 import TrraPage from "./pages/TrraPage";
+import JrFullstackPage from "./pages/JrFullstackPage";
 
 export default function App() {
   return (
@@ -10,7 +11,8 @@ export default function App() {
       <Routes>
         {/* <Route path="/" element={<OttermapPage />} /> */}
         {/* <Route path="/ottermap" element={<OttermapPage />} /> */}
-        <Route path="/" element={<TrraPage />} />
+        {/* <Route path="/" element={<TrraPage />} /> */}
+        <Route path="/" element={<JrFullstackPage />} />
         <Route path="/admin" element={<AdminPage />} />
 
         <Route path="*" element={<Navigate to="/" />} />
